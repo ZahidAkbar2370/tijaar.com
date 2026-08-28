@@ -1,0 +1,50 @@
+{
+  "name": "tijaar",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "inject-firebase-sw": "node scripts/inject-firebase-sw.js",
+    "optimize-public-images": "node scripts/optimize-public-images.mjs",
+    "dev": "npm run inject-firebase-sw && next dev",
+    "dev:3001": "npm run inject-firebase-sw && next dev -p 3001",
+    "build": "npm run inject-firebase-sw && npm run optimize-public-images && next build && node scripts/prepare-standalone.mjs",
+    "start": "node .next/standalone/server.js",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "firebase": "^11.0.2",
+    "framer-motion": "^12.23.25",
+    "lucide-react": "^0.556.0",
+    "next": "^15.5.11",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "sweetalert2": "^11.26.23",
+    "swiper": "^12.0.3",
+    "swiper-react": "^1.0.0",
+    "xlsx": "^0.18.5"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "^3.3.3",
+    "@tailwindcss/postcss": "^4.1.17",
+    "@types/node": "^22.10.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "critters": "^0.0.25",
+    "eslint": "^9.39.1",
+    "eslint-config-next": "^15.1.0",
+    "eslint-plugin-react-hooks": "^7.0.1",
+    "postcss": "^8.4.49",
+    "sharp": "^0.34.3",
+    "tailwindcss": "^4.1.17",
+    "typescript": "5.9.3"
+  },
+  "browserslist": [
+    "chrome >= 111",
+    "edge >= 111",
+    "firefox >= 111",
+    "safari >= 16.4",
+    "not dead",
+    "not op_mini all"
+  ]
+}

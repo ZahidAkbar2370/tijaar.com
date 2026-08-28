@@ -1,0 +1,88 @@
+name: Deploy Frontend to Production
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-frontend-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Deploy Next.js App
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Configure SSH
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "${{ secrets.DEPLOY_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H "${{ secrets.SERVER_HOST }}" >> ~/.ssh/known_hosts 2>/dev/null || true
+
+      - name: Sync application files
+        env:
+          SERVER_USER: ${{ secrets.SERVER_USER }}
+          SERVER_HOST: ${{ secrets.SERVER_HOST }}
+          DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
+        run: |
+          RSYNC_SSH="ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=yes -o IdentitiesOnly=yes -o ConnectTimeout=30"
+
+          rsync -avz \
+            --delete \
+            --omit-dir-times \
+            --no-perms \
+            --exclude '.env' \
+            --exclude '.env.local' \
+            --exclude '.git/' \
+            --exclude '.github/' \
+            --exclude 'node_modules/' \
+            --exclude '.next/' \
+            -e "$RSYNC_SSH" \
+            ./ "${SERVER_USER}@${SERVER_HOST}:${DEPLOY_PATH}/"
+
+      - name: Build and restart PM2
+        env:
+          SERVER_USER: ${{ secrets.SERVER_USER }}
+          SERVER_HOST: ${{ secrets.SERVER_HOST }}
+          DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
+        run: |
+          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=yes -o IdentitiesOnly=yes -o ConnectTimeout=30 \
+            "${SERVER_USER}@${SERVER_HOST}" <<EOF
+          set -euo pipefail
+          cd "${DEPLOY_PATH}"
+
+          export NVM_DIR="\$HOME/.nvm"
+          if [ -s "\$NVM_DIR/nvm.sh" ]; then
+            . "\$NVM_DIR/nvm.sh"
+          fi
+
+          if [ ! -f .env ]; then
+            if [ -f .env.production ]; then
+              cp .env.production .env
+            else
+              echo "ERROR: .env is missing on server. Create it before deploy."
+              exit 1
+            fi
+          fi
+
+          npm ci
+          npm run build
+
+          if command -v pm2 >/dev/null 2>&1; then
+            pm2 startOrReload ecosystem.config.cjs --update-env
+            pm2 save
+          else
+            echo "ERROR: pm2 not found in PATH"
+            exit 1
+          fi
+          EOF
+
+      - name: Deployment summary
+        run: echo "Frontend deployed to ${{ secrets.SERVER_HOST }}:${{ secrets.DEPLOY_PATH }}"
