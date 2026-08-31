@@ -17,6 +17,7 @@ import PageHero from "@/components/customer/PageHero";
 import { useSnackbar } from "@/context/SnackbarContext";
 import * as XLSX from "xlsx";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import { walletTransactionTitle, isWalletCredit } from "@/lib/walletTransactionLabels";
 
 const ALL_COLUMNS = [
   { key: "id", label: "ID", default: false },
@@ -119,26 +120,11 @@ export default function VendorTransactionsPage() {
     }
   };
 
-  const isCredit = (type, amount) => {
-    const t = String(type || "").toLowerCase();
-    if (["credit", "refund", "deposit", "earnings_credit", "payout_refund"].includes(t)) return true;
-    if (t === "order_payment" && parseFloat(amount || 0) > 0) return true;
-    return parseFloat(amount || 0) > 0;
-  };
-  const typeLabel = (type) => {
-    const t = String(type || "").toLowerCase();
-    if (t === "package_purchase") return "Package subscription";
-    if (t === "order_payment") return "Order payment";
-    if (t === "earnings_credit") return "Earnings to wallet";
-    if (t === "deposit") return "Wallet deposit";
-    if (t === "listing_fee") return "Listing fee";
-    if (t === "order_reject_penalty") return "Order reject penalty";
-    if (t === "refund") return "Refund";
-    if (t === "deposit") return "Wallet deposit";
-    if (t === "payout_refund") return "Payout rejected – returned";
-    if (t === "payout") return "Payout requested";
-    return type;
-  };
+  const isCredit = (type, amount) => isWalletCredit(type, amount);
+  const typeLabel = (tOrType, amount) =>
+    typeof tOrType === "object" && tOrType !== null
+      ? tOrType.title || walletTransactionTitle(tOrType.type, tOrType.amount)
+      : walletTransactionTitle(tOrType, amount);
 
   return (
     <ProtectedRoute requiredRole="seller">
@@ -185,18 +171,16 @@ export default function VendorTransactionsPage() {
               <label className="block text-xs font-medium text-gray-500 mb-1">Type</label>
               <select value={filters.type} onChange={(e) => setFilters((p) => ({ ...p, type: e.target.value }))} className="px-3 py-2 rounded-lg border border-gray-200 text-sm">
                 <option value="">All</option>
-                <option value="credit">Credit</option>
-                <option value="debit">Debit</option>
-                <option value="refund">Refund</option>
-                <option value="order_payment">Order Payment</option>
-                <option value="package_purchase">Package subscription</option>
-                <option value="deposit">Wallet deposit</option>
-                <option value="listing_fee">Listing fee</option>
-                <option value="order_reject_penalty">Order reject penalty</option>
-                <option value="refund">Refund</option>
-                <option value="deposit">Wallet deposit</option>
-                <option value="payout">Payout</option>
-                <option value="payout_refund">Payout rejected (returned)</option>
+                <option value="order_payment">Order Payment / Earnings</option>
+                <option value="deposit">Payment Added to Wallet</option>
+                <option value="refund">Order Refunded</option>
+                <option value="package_purchase">Payment for Product Promotion</option>
+                <option value="listing_fee">Payment for Listing Fee</option>
+                <option value="order_reject_penalty">Order Reject Penalty</option>
+                <option value="earnings_credit">Earnings Added to Wallet</option>
+                <option value="payout">Payout Requested</option>
+                <option value="payout_refund">Payout Returned to Wallet</option>
+                <option value="debit">Wallet Payment</option>
               </select>
             </div>
             <div>
@@ -348,13 +332,13 @@ export default function VendorTransactionsPage() {
                         <td className="px-4 py-3">
                           <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium ${isCredit(t.type, t.amount) ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700"}`}>
                             {isCredit(t.type, t.amount) ? <ArrowDownLeft className="w-3 h-3" /> : <ArrowUpRight className="w-3 h-3" />}
-                            {typeLabel(t.type)}
+                            {typeLabel(t)}
                           </span>
                         </td>
                       )}
                       {visibleCols.includes("amount") && (
                         <td className={`px-4 py-3 font-medium ${isCredit(t.type, t.amount) ? "text-emerald-600" : "text-red-600"}`}>
-                          {isCredit(t.type, t.amount) ? "+" : "-"} {Math.abs(parseFloat(t.amount || 0)).toLocaleString()}
+                          {isCredit(t.type, t.amount) ? "+" : "-"}{Math.abs(parseFloat(t.amount || 0)).toLocaleString()}
                         </td>
                       )}
                       {visibleCols.includes("status") && (
@@ -368,7 +352,7 @@ export default function VendorTransactionsPage() {
                         <td className="px-4 py-3 text-sm text-gray-700">{t.payment_method || "—"}</td>
                       )}
                       {visibleCols.includes("balance_after") && <td className="px-4 py-3 text-sm">{t.balance_after != null ? Number(t.balance_after).toLocaleString() : "—"}</td>}
-                      {visibleCols.includes("description") && <td className="px-4 py-3 text-sm text-gray-600">{t.description || "—"}</td>}
+                      {visibleCols.includes("description") && <td className="px-4 py-3 text-sm text-gray-600">{t.description || t.title || "—"}</td>}
                       {visibleCols.includes("reference_type") && <td className="px-4 py-3 text-sm text-gray-500">{t.reference_type || "—"}</td>}
                       {visibleCols.includes("created_at") && <td className="px-4 py-3 text-sm text-gray-500">{t.created_at ? new Date(t.created_at).toLocaleString() : "—"}</td>}
                     </tr>

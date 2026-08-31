@@ -47,6 +47,7 @@ const defaults = {
   jazzcash_checkout_mode: "mwallet_v2",
   jazzcash_requires_mobile: true,
   jazzcash_requires_cnic: true,
+  enabled_couriers: [],
   recaptcha_enabled: false,
   recaptcha_site_key: "",
   recaptcha_on_login: false,
@@ -102,6 +103,7 @@ export function SiteSettingsProvider({ children }) {
             jazzcash_requires_cnic: res.jazzcash_requires_cnic !== undefined
               ? !!res.jazzcash_requires_cnic
               : defaults.jazzcash_requires_cnic,
+            enabled_couriers: Array.isArray(res.enabled_couriers) ? res.enabled_couriers : defaults.enabled_couriers,
             recaptcha_enabled: !!res.recaptcha_enabled,
             recaptcha_site_key: res.recaptcha_site_key || "",
             recaptcha_on_login: !!res.recaptcha_on_login,

@@ -71,8 +71,8 @@ export default function Hero() {
   }, [categories, navCategories, browseCategories]);
 
   return (
-    <div className="hero-content-layer px-3 sm:px-4 lg:px-8 py-4 sm:py-6 lg:py-8">
-        <div className="grid lg:grid-cols-2 gap-6 sm:gap-10 lg:gap-14 items-center">
+    <div className="hero-content-layer px-3 sm:px-4 lg:px-8 pt-5 sm:pt-[30px] pb-4 sm:pb-6 lg:pb-8">
+        <div className="grid lg:grid-cols-2 gap-6 sm:gap-10 lg:gap-14 items-start">
           <div>
             {(heroConfig?.badge ?? "#1 Multi-Seller Marketplace") && (
               <span className="inline-flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-4 py-1 sm:py-2 bg-[#1790d7]/10 rounded-full text-[#1790d7] text-[11px] sm:text-sm font-medium mb-3 sm:mb-6">
@@ -97,7 +97,7 @@ export default function Hero() {
             )}
 
             <p className="text-gray-600 text-sm sm:text-lg mb-4 sm:mb-6 max-w-lg leading-snug">
-              {heroConfig?.subtitle || "The #1 multi-seller marketplace for Pakistan & UAE. Shop from verified sellers with secure payments, fast shipping, and buyer protection—or start selling and reach millions of buyers."}
+              {heroConfig?.subtitle || "Tijaar is Pakistan's multi-seller marketplace. Shop from verified sellers with secure payments, buyer protection, and fast courier delivery or become a verified seller and reach buyers nationwide."}
             </p>
 
             <div className="hidden sm:flex flex-wrap gap-4 mb-6">
@@ -109,7 +109,7 @@ export default function Hero() {
                     </div>
                     <div>
                       <p className="font-semibold text-gray-900">{heroConfig?.feature1_title || "Secure Payments"}</p>
-                      <p className="text-xs text-gray-500">{heroConfig?.feature1_subtitle || "JazzCash, Stripe, PayPal"}</p>
+                      <p className="text-xs text-gray-500">{heroConfig?.feature1_subtitle || "JazzCash, Bank Card, Easypaisa"}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-3 px-4 py-3 bg-white/80 backdrop-blur-sm rounded-xl border border-gray-100 shadow-sm">
@@ -118,7 +118,7 @@ export default function Hero() {
                     </div>
                     <div>
                       <p className="font-semibold text-gray-900">{heroConfig?.feature2_title || "Verified Sellers"}</p>
-                      <p className="text-xs text-gray-500">{heroConfig?.feature2_subtitle || "Trusted marketplace"}</p>
+                      <p className="text-xs text-gray-500">{heroConfig?.feature2_subtitle || "KYC, Email, Phone,"}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-3 px-4 py-3 bg-white/80 backdrop-blur-sm rounded-xl border border-gray-100 shadow-sm">
@@ -127,7 +127,7 @@ export default function Hero() {
                     </div>
                     <div>
                       <p className="font-semibold text-gray-900">{heroConfig?.feature3_title || "Fast Shipping"}</p>
-                      <p className="text-xs text-gray-500">{heroConfig?.feature3_subtitle || "Pakistan & UAE"}</p>
+                      <p className="text-xs text-gray-500">{heroConfig?.feature3_subtitle || "TCS, Leopards, PostEx"}</p>
                     </div>
                   </div>
                 </>
@@ -146,7 +146,7 @@ export default function Hero() {
                 href={heroConfig?.cta_secondary_url || "/sellers"}
                 className="inline-flex items-center gap-1.5 sm:gap-2 px-3.5 sm:px-6 py-2 sm:py-4 text-xs sm:text-base bg-white border border-primary-dark sm:border-2 text-primary-dark rounded-lg sm:rounded-xl font-semibold hover:bg-primary-dark/5 transition-all"
               >
-                {heroConfig?.cta_secondary_text || "Sell on Tijaar"}
+                {heroConfig?.cta_secondary_text || "Become a Verified Seller"}
               </Link>
             </div>
 
@@ -265,21 +265,6 @@ export default function Hero() {
                 )}
               </div>
             )}
-
-            <Link href="/all-categories">
-              <div className="flex items-center justify-between p-2.5 sm:p-4 bg-gradient-to-r from-[#1790d7] to-[#4db3e8] rounded-xl sm:rounded-2xl cursor-pointer group hover:scale-[1.01] transition-transform">
-                <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-                  <div className="p-1.5 sm:p-2 bg-white/20 rounded-lg sm:rounded-xl shrink-0">
-                    <Store className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
-                  </div>
-                  <div className="min-w-0">
-                    <h4 className="text-white font-semibold text-sm sm:text-base leading-tight">Explore All Categories</h4>
-                    <p className="text-white/70 text-[11px] sm:text-sm">{(categories || []).length} categories</p>
-                  </div>
-                </div>
-                <span className="text-white text-sm sm:text-base group-hover:translate-x-2 transition-transform shrink-0">→</span>
-              </div>
-            </Link>
           </div>
         </div>
     </div>

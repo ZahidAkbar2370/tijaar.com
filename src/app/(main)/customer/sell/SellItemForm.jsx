@@ -471,7 +471,7 @@ export default function SellItemForm() {
               </Field>
               <Field
                 label="Brand (optional)"
-                hint={!form.category_id ? "Select a category first" : brands.length ? undefined : "No brands for this category yet"}
+                hint={form.category_id && !brands.length ? "No brands for this category yet" : undefined}
               >
                 <SearchableSelect
                   options={brandOptions}
@@ -581,16 +581,17 @@ export default function SellItemForm() {
                   />
                 </div>
               </Field>
-              <Field label="Quantity" required error={errors.quantity} hint={isPrivateSeller ? "Units available" : "Fixed at 1 for customer sellers"}>
+              <Field label="Quantity" required error={errors.quantity} hint={isPrivateSeller ? "Units available" : undefined}>
                 <input
                   type="number"
                   name="quantity"
-                  value={form.quantity}
+                  value={isPrivateSeller ? form.quantity : "1"}
                   onChange={handleChange}
                   min="1"
                   max={isPrivateSeller ? undefined : 1}
+                  disabled={!isPrivateSeller}
                   readOnly={!isPrivateSeller}
-                  className={`${inputClass(!!errors.quantity)} w-28 ${!isPrivateSeller ? "bg-gray-50" : ""}`}
+                  className={`${inputClass(!!errors.quantity)} w-28 ${!isPrivateSeller ? "bg-gray-100 text-gray-500 cursor-not-allowed" : ""}`}
                 />
               </Field>
             </div>

@@ -23,28 +23,28 @@ export default function AppDownload() {
   const playStoreUrl = config?.play_store_url || "#";
 
   return (
-    <div className="py-8 px-4 lg:px-16 bg-gradient-to-r from-[#1790d7] to-[#4db3e8] relative overflow-hidden">
+    <div className="py-5 sm:py-6 px-4 lg:px-16 bg-gradient-to-r from-[#1790d7] to-[#4db3e8] relative overflow-hidden">
       <div className="w-full relative z-10">
-        <div className="grid md:grid-cols-2 gap-8 items-center">
+        <div className="grid md:grid-cols-2 gap-6 lg:gap-8 items-center">
           <motion.div
             initial={{ opacity: 0, x: -50 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
           >
-            <span className="inline-flex items-center gap-2 px-4 py-2 bg-white/20 text-white rounded-full text-sm font-medium mb-4">
-              <Smartphone className="w-4 h-4" />
+            <span className="inline-flex items-center gap-2 px-3 py-1.5 bg-white/20 text-white rounded-full text-xs sm:text-sm font-medium mb-3">
+              <Smartphone className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               Mobile App
             </span>
-            <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-white mb-4 leading-tight">
-              {headline} <br />
+            <h2 className="text-xl md:text-2xl lg:text-3xl font-bold text-white mb-2.5 leading-tight">
+              {headline}{" "}
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-300 to-orange-400">
                 {highlight}
               </span>
             </h2>
-            <p className="text-white/80 text-sm mb-4">
+            <p className="text-white/80 text-sm mb-3 max-w-md">
               {description}
             </p>
-            <div className="flex flex-wrap gap-4 mb-4">
+            <div className="flex flex-wrap gap-2 sm:gap-3 mb-3">
               {features.map((f, i) => (
                 <motion.div
                   key={i}
@@ -52,32 +52,32 @@ export default function AppDownload() {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ delay: i * 0.1 }}
-                  className="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full"
+                  className="flex items-center gap-1.5 bg-white/10 backdrop-blur-sm px-3 py-1.5 rounded-full"
                 >
-                  <span>{f.icon}</span>
-                  <span className="text-white text-sm font-medium">{f.text}</span>
+                  <span className="text-sm">{f.icon}</span>
+                  <span className="text-white text-xs sm:text-sm font-medium">{f.text}</span>
                 </motion.div>
               ))}
             </div>
-            <div className="flex items-center gap-4 mb-4">
-              <div className="flex gap-1">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="flex gap-0.5">
                 {[1, 2, 3, 4, 5].map((i) => (
-                  <Star key={i} className="w-5 h-5 text-amber-400 fill-amber-400" />
+                  <Star key={i} className="w-4 h-4 text-amber-400 fill-amber-400" />
                 ))}
               </div>
-              <span className="text-white/80">{ratingText}</span>
+              <span className="text-white/80 text-sm">{ratingText}</span>
             </div>
-            <div className="flex flex-wrap gap-4">
+            <div className="flex flex-wrap gap-3">
               <Link href={appStoreUrl} target="_blank" rel="noopener noreferrer">
                 <motion.span
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
-                  className="flex items-center gap-3 bg-black text-white px-6 py-3 rounded-xl hover:bg-gray-900 cursor-pointer"
+                  className="flex items-center gap-2.5 bg-black text-white px-4 py-2.5 rounded-xl hover:bg-gray-900 cursor-pointer"
                 >
-                  <span className="text-2xl">🍎</span>
+                  <span className="text-xl">🍎</span>
                   <div className="text-left">
-                    <p className="text-xs opacity-80">Download on the</p>
-                    <p className="text-sm font-semibold">App Store</p>
+                    <p className="text-[10px] opacity-80 leading-tight">Download on the</p>
+                    <p className="text-sm font-semibold leading-tight">App Store</p>
                   </div>
                 </motion.span>
               </Link>
@@ -85,12 +85,12 @@ export default function AppDownload() {
                 <motion.span
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
-                  className="flex items-center gap-3 bg-black text-white px-6 py-3 rounded-xl hover:bg-gray-900 cursor-pointer"
+                  className="flex items-center gap-2.5 bg-black text-white px-4 py-2.5 rounded-xl hover:bg-gray-900 cursor-pointer"
                 >
-                  <span className="text-2xl">▶️</span>
+                  <span className="text-xl">▶️</span>
                   <div className="text-left">
-                    <p className="text-xs opacity-80">Get it on</p>
-                    <p className="text-sm font-semibold">Google Play</p>
+                    <p className="text-[10px] opacity-80 leading-tight">Get it on</p>
+                    <p className="text-sm font-semibold leading-tight">Google Play</p>
                   </div>
                 </motion.span>
               </Link>
@@ -102,18 +102,18 @@ export default function AppDownload() {
             viewport={{ once: true }}
             className="flex justify-center"
           >
-            <div className="w-64 h-[500px] bg-gradient-to-b from-gray-800 to-gray-900 rounded-[3rem] p-3 shadow-2xl">
-              <div className="w-full h-full bg-white rounded-[2.5rem] overflow-hidden">
-                <div className="pt-10 px-4">
-                  <div className="bg-gradient-to-r from-[#1790d7] to-[#4db3e8] rounded-xl p-4 mb-4">
-                    <h3 className="text-white font-bold text-lg">Tijaar</h3>
-                    <p className="text-white/70 text-xs">Find everything you need</p>
+            <div className="w-44 sm:w-52 h-[320px] sm:h-[360px] bg-gradient-to-b from-gray-800 to-gray-900 rounded-[2.25rem] p-2.5 shadow-2xl">
+              <div className="w-full h-full bg-white rounded-[1.85rem] overflow-hidden">
+                <div className="pt-7 px-3">
+                  <div className="bg-gradient-to-r from-[#1790d7] to-[#4db3e8] rounded-xl p-3 mb-3">
+                    <h3 className="text-white font-bold text-base">Tijaar</h3>
+                    <p className="text-white/70 text-[11px]">Find everything you need</p>
                   </div>
                   {[1, 2, 3].map((i) => (
-                    <div key={i} className="flex gap-3 bg-gray-50 rounded-lg p-2 mb-3">
-                      <div className="w-14 h-14 bg-gray-200 rounded-lg" />
-                      <div className="flex-1">
-                        <div className="h-3 bg-gray-300 rounded w-3/4 mb-2" />
+                    <div key={i} className="flex gap-2.5 bg-gray-50 rounded-lg p-2 mb-2">
+                      <div className="w-11 h-11 bg-gray-200 rounded-lg shrink-0" />
+                      <div className="flex-1 min-w-0 pt-0.5">
+                        <div className="h-2.5 bg-gray-300 rounded w-3/4 mb-1.5" />
                         <div className="h-2 bg-gray-200 rounded w-1/2" />
                       </div>
                     </div>

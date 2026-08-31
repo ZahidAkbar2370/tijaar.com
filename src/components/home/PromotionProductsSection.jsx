@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ChevronLeft, ChevronRight, Gem } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Autoplay, Navigation } from "swiper/modules";
 import ProductCard, { ProductCardSkeletonRow } from "@/components/public/ProductCard";
@@ -12,7 +12,7 @@ export default function PromotionProductsSection({
   title,
   subtitle,
   viewAllHref = "/shop",
-  icon: Icon = Gem,
+  icon: Icon = null,
 }) {
   const { [dataKey]: products, loading } = useHomeData();
 
@@ -33,7 +33,7 @@ export default function PromotionProductsSection({
       <div className="flex items-center justify-between gap-2 sm:gap-4 mb-3 sm:mb-4">
         <div className="min-w-0">
           <h2 className="text-base sm:text-2xl md:text-3xl font-bold text-gray-800 flex items-center gap-1.5 sm:gap-2">
-            <Icon className="w-5 h-5 sm:w-8 sm:h-8 text-amber-500 shrink-0" />
+            {Icon ? <Icon className="w-5 h-5 sm:w-8 sm:h-8 text-amber-500 shrink-0" /> : null}
             <span className="truncate">{title}</span>
           </h2>
           {subtitle ? (

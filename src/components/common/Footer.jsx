@@ -16,8 +16,6 @@ import {
   Heart,
   Shield,
   BadgeCheck,
-  CreditCard,
-  Truck,
   HelpCircle,
   Store,
   MessageCircle,
@@ -69,24 +67,6 @@ const support = [
   { name: "Returns & Refunds", link: "/returns-refunds", icon: RotateCcw, color: "text-orange-400" },
   { name: "Shipping Info", link: "/shipping", icon: Package, color: "text-green-400" },
 ];
-
-const paymentMethods = [
-  { name: "JazzCash" },
-  { name: "Stripe" },
-];
-
-const shippingPartners = [
-  { name: "TCS" },
-  { name: "Leopards" },
-];
-
-function TextItem({ name }) {
-  return (
-    <div className="flex items-center justify-center min-h-[28px] sm:min-h-[36px] h-7 sm:h-9 px-2 sm:px-3 py-1 bg-white/10 rounded-md sm:rounded-lg border border-white/10 hover:bg-white/15 transition-colors" title={name}>
-      <span className="text-[10px] sm:text-xs font-medium text-gray-300">{name}</span>
-    </div>
-  );
-}
 
 export default function Footer() {
   const settings = useSiteSettings();
@@ -282,35 +262,6 @@ export default function Footer() {
                 );
               })}
             </ul>
-          </div>
-
-          {/* Payment & Shipping — full width under link columns */}
-          <div className="col-span-2 md:col-span-3 lg:col-start-3 lg:col-span-4 lg:-mt-10">
-            <div className="grid grid-cols-2 sm:flex sm:flex-row items-start gap-4 sm:gap-8 lg:gap-12">
-              <div className="min-w-0">
-                <h4 className="text-[10px] sm:text-xs font-semibold uppercase tracking-wider text-gray-400 flex items-center gap-1.5 sm:gap-2 mb-2 sm:mb-3">
-                  <CreditCard className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-green-400 shrink-0" />
-                  We Accept
-                </h4>
-                <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
-                  {paymentMethods.map((p, i) => (
-                    <TextItem key={i} name={p.name} />
-                  ))}
-                </div>
-              </div>
-
-              <div className="min-w-0">
-                <h4 className="text-[10px] sm:text-xs font-semibold uppercase tracking-wider text-gray-400 flex items-center gap-1.5 sm:gap-2 mb-2 sm:mb-3">
-                  <Truck className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-blue-400 shrink-0" />
-                  Shipping Partners
-                </h4>
-                <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
-                  {shippingPartners.map((s, i) => (
-                    <TextItem key={i} name={s.name} />
-                  ))}
-                </div>
-              </div>
-            </div>
           </div>
         </div>
 

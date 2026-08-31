@@ -17,6 +17,7 @@ import { useSnackbar } from "@/context/SnackbarContext";
 import { useMarket } from "@/context/MarketContext";
 import * as XLSX from "xlsx";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import { walletTransactionTitle, isWalletCredit } from "@/lib/walletTransactionLabels";
 
 const PER_PAGE = 10;
 
@@ -38,30 +39,16 @@ const PAID_THROUGH_OPTIONS = [
 
 const TYPE_OPTIONS = [
   { value: "", label: "All types" },
-  { value: "order_payment", label: "Order payment" },
-  { value: "deposit", label: "Wallet deposit" },
-  { value: "refund", label: "Refund" },
-  { value: "listing_fee", label: "Listing fee" },
-  { value: "order_reject_penalty", label: "Order reject penalty" },
+  { value: "order_payment", label: "Order Payment" },
+  { value: "deposit", label: "Payment Added to Wallet" },
+  { value: "refund", label: "Order Refunded" },
+  { value: "listing_fee", label: "Payment for Listing Fee" },
+  { value: "package_purchase", label: "Payment for Product Promotion" },
+  { value: "order_reject_penalty", label: "Order Reject Penalty" },
 ];
 
-const isCredit = (type, amount) => {
-  const t = String(type || "").toLowerCase();
-  if (["credit", "refund", "deposit", "earnings_credit", "payout_refund"].includes(t)) return true;
-  if (t === "order_payment" && parseFloat(amount || 0) > 0) return true;
-  return parseFloat(amount || 0) > 0;
-};
-
-const typeLabel = (type) => {
-  const t = String(type || "").toLowerCase();
-  if (t === "order_payment") return "Order payment";
-  if (t === "deposit") return "Wallet deposit";
-  if (t === "refund") return "Refund";
-  if (t === "listing_fee") return "Listing fee";
-  if (t === "order_reject_penalty") return "Order reject penalty";
-  if (t === "payout") return "Payout";
-  return type || "Transaction";
-};
+const typeLabel = (t) => walletTransactionTitle(t.type, t.amount);
+const isCredit = (type, amount) => isWalletCredit(type, amount);
 
 const statusBadge = (status) => {
   const s = String(status || "success").toLowerCase();
@@ -316,15 +303,18 @@ export default function CustomerTransactionsPage() {
                         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
                           <div className="min-w-0">
                             <p className="font-medium text-gray-900">
-                              {t.description || "Order payment"}
+                              {t.title || typeLabel(t)}
                               {t.order_number ? (
                                 <span className="text-gray-500 font-normal"> · #{t.order_number}</span>
                               ) : null}
                             </p>
+                            {t.description && t.description !== (t.title || typeLabel(t)) ? (
+                              <p className="text-sm text-gray-500 mt-0.5 line-clamp-2">{t.description}</p>
+                            ) : null}
                             <div className="mt-2 flex flex-wrap items-center gap-2">
                               <span className={pillClass}>
                                 <span className="text-gray-500 mr-1">Type</span>
-                                {typeLabel(t.type)}
+                                {t.title || typeLabel(t)}
                               </span>
                               <span className={pillClass}>
                                 <span className="text-gray-500 mr-1">Date</span>

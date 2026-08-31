@@ -8,6 +8,7 @@ import { walletApi } from "@/lib/api";
 import { useSnackbar } from "@/context/SnackbarContext";
 import { useSiteSettings } from "@/context/SiteSettingsContext";
 import PageHero from "@/components/customer/PageHero";
+import WalletDepositPaymentFields from "@/components/wallet/WalletDepositPaymentFields";
 import { Wallet, CreditCard, Smartphone } from "lucide-react";
 
 const FALLBACK_GATEWAYS = [
@@ -63,12 +64,20 @@ function VendorDepositContent() {
       showError?.("Enter CNIC for JazzCash (last 6 digits or full CNIC)");
       return;
     }
+    if (gateway === "easypaisa" && paymentPhone.trim() && !/^03\d{9}$/.test(jazzPhone)) {
+      showError?.("Enter a valid Easypaisa mobile (03XXXXXXXXX) or leave blank");
+      return;
+    }
     setSubmitting(true);
     try {
+      const phoneForGateway =
+        gateway === "jazzcash" || (gateway === "easypaisa" && paymentPhone.trim())
+          ? jazzPhone || undefined
+          : undefined;
       const res = await walletApi.deposit(
         num,
         gateway,
-        gateway === "jazzcash" ? jazzPhone : undefined,
+        phoneForGateway,
         gateway === "jazzcash" && jazzcashRequiresCnic ? cnicDigits : undefined
       );
       if (res.checkout_url) {
@@ -159,44 +168,6 @@ function VendorDepositContent() {
               <p className="text-xs text-gray-500 mt-1">Min 100 PKR, max 500,000 PKR</p>
             </div>
 
-            {gateway === "jazzcash" && (jazzcashRequiresMobile || jazzcashRequiresCnic) && (
-              <div className="space-y-4">
-                {jazzcashRequiresMobile && (
-                  <div>
-                    <label htmlFor="payment_phone" className="block text-sm font-medium text-gray-700 mb-1">
-                      JazzCash mobile number
-                    </label>
-                    <input
-                      id="payment_phone"
-                      type="tel"
-                      value={paymentPhone}
-                      onChange={(e) => setPaymentPhone(e.target.value)}
-                      placeholder="03XXXXXXXXX"
-                      className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-[#1790d7]/25 focus:border-[#1790d7]"
-                      required
-                    />
-                  </div>
-                )}
-                {jazzcashRequiresCnic && (
-                  <div>
-                    <label htmlFor="payment_cnic" className="block text-sm font-medium text-gray-700 mb-1">
-                      CNIC
-                    </label>
-                    <input
-                      id="payment_cnic"
-                      type="text"
-                      inputMode="numeric"
-                      value={paymentCnic}
-                      onChange={(e) => setPaymentCnic(e.target.value)}
-                      placeholder="Last 6 digits or full CNIC"
-                      className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-[#1790d7]/25 focus:border-[#1790d7]"
-                      required
-                    />
-                  </div>
-                )}
-              </div>
-            )}
-
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Payment method</label>
               <div className="space-y-2">
@@ -214,7 +185,11 @@ function VendorDepositContent() {
                         name="gateway"
                         value={g.value}
                         checked={gateway === g.value}
-                        onChange={() => setGateway(g.value)}
+                        onChange={() => {
+                          setGateway(g.value);
+                          setPaymentPhone("");
+                          setPaymentCnic("");
+                        }}
                         className="text-[#1790d7]"
                       />
                       <Icon className="w-5 h-5 text-gray-500" />
@@ -227,6 +202,16 @@ function VendorDepositContent() {
                 })}
               </div>
             </div>
+
+            <WalletDepositPaymentFields
+              gateway={gateway}
+              paymentPhone={paymentPhone}
+              setPaymentPhone={setPaymentPhone}
+              paymentCnic={paymentCnic}
+              setPaymentCnic={setPaymentCnic}
+              jazzcashRequiresMobile={jazzcashRequiresMobile}
+              jazzcashRequiresCnic={jazzcashRequiresCnic}
+            />
 
             <button
               type="submit"

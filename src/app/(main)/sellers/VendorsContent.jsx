@@ -74,11 +74,21 @@ export default function VendorsContent() {
 
       <div className="bg-gradient-to-r from-[#1790d7] to-[#4db3e8] py-12 lg:py-16">
         <div className="w-full px-4 lg:px-8">
-          <h1 className="text-3xl lg:text-4xl font-bold text-white mb-4 text-center">{sellersH1}</h1>
-          <p className="text-white/80 text-lg text-center max-w-2xl mx-auto">
-            Shop from trusted sellers with excellent ratings. Every seller is verified so you can buy with
-            confidence. Want to sell? Join as a seller and reach millions of buyers.
-          </p>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
+            <div className="min-w-0 text-left">
+              <h1 className="text-3xl lg:text-4xl font-bold text-white mb-4">{sellersH1}</h1>
+              <p className="text-white/80 text-lg max-w-2xl">
+                Shop from trusted sellers with excellent ratings. Every seller is verified so you can buy with
+                confidence. Want to sell? Join as a seller and reach millions of buyers.
+              </p>
+            </div>
+            <Link
+              href="/seller/register"
+              className="shrink-0 inline-flex items-center justify-center px-6 py-3 rounded-xl bg-white text-[#1790d7] font-semibold text-sm sm:text-base hover:bg-white/90 transition-colors shadow-sm"
+            >
+              Register Your Store
+            </Link>
+          </div>
         </div>
       </div>
 

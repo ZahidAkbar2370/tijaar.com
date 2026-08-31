@@ -8,6 +8,7 @@ import { walletApi } from "@/lib/api";
 import { useSnackbar } from "@/context/SnackbarContext";
 import { useSiteSettings } from "@/context/SiteSettingsContext";
 import PageHero from "@/components/customer/PageHero";
+import WalletDepositPaymentFields from "@/components/wallet/WalletDepositPaymentFields";
 import { Wallet, CreditCard, Smartphone } from "lucide-react";
 
 const FALLBACK_GATEWAYS = [
@@ -63,12 +64,20 @@ function DepositForm() {
       showError?.("Enter CNIC for JazzCash (last 6 digits or full CNIC)");
       return;
     }
+    if (gateway === "easypaisa" && paymentPhone.trim() && !/^03\d{9}$/.test(jazzPhone)) {
+      showError?.("Enter a valid Easypaisa mobile (03XXXXXXXXX) or leave blank");
+      return;
+    }
     setSubmitting(true);
     try {
+      const phoneForGateway =
+        gateway === "jazzcash" || (gateway === "easypaisa" && paymentPhone.trim())
+          ? jazzPhone || undefined
+          : undefined;
       const res = await walletApi.deposit(
         num,
         gateway,
-        gateway === "jazzcash" ? jazzPhone : undefined,
+        phoneForGateway,
         gateway === "jazzcash" && jazzcashRequiresCnic ? cnicDigits : undefined
       );
       if (res.checkout_url) {
@@ -138,14 +147,38 @@ function DepositForm() {
                       gateway === g.value ? "border-[#1790d7] bg-[#1790d7]/5" : "border-gray-200"
                     }`}
                   >
-                    <input type="radio" name="gateway" value={g.value} checked={gateway === g.value} onChange={() => setGateway(g.value)} />
+                    <input
+                      type="radio"
+                      name="gateway"
+                      value={g.value}
+                      checked={gateway === g.value}
+                      onChange={() => {
+                        setGateway(g.value);
+                        setPaymentPhone("");
+                        setPaymentCnic("");
+                      }}
+                    />
                     <Icon className="w-5 h-5 text-gray-500" />
-                    <span className="font-medium">{g.label}</span>
+                    <div>
+                      <span className="font-medium">{g.label}</span>
+                      {g.desc ? <p className="text-xs text-gray-500">{g.desc}</p> : null}
+                    </div>
                   </label>
                 );
               })}
             </div>
           </div>
+
+          <WalletDepositPaymentFields
+            gateway={gateway}
+            paymentPhone={paymentPhone}
+            setPaymentPhone={setPaymentPhone}
+            paymentCnic={paymentCnic}
+            setPaymentCnic={setPaymentCnic}
+            jazzcashRequiresMobile={jazzcashRequiresMobile}
+            jazzcashRequiresCnic={jazzcashRequiresCnic}
+          />
+
           <button type="submit" disabled={submitting} className="w-full py-3 rounded-xl bg-[#1790d7] text-white font-medium disabled:opacity-50">
             {submitting ? "Processing…" : "Proceed to payment"}
           </button>

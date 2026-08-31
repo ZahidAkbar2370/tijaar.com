@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Clock, ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Autoplay, Navigation } from "swiper/modules";
 import ProductCard, { ProductCardSkeletonRow } from "@/components/public/ProductCard";
@@ -12,7 +12,7 @@ export default function RecentProductsSection() {
 
   if (loading) {
     return (
-      <div className="py-8 px-4 lg:px-16 bg-gradient-to-b from-gray-50 to-white">
+      <div className="py-8 px-4 lg:px-16 bg-white">
         <div className="mb-6 h-9 w-56 bg-gray-100 rounded-lg animate-pulse" />
         <ProductCardSkeletonRow count={4} />
       </div>
@@ -21,11 +21,10 @@ export default function RecentProductsSection() {
   if (!products?.length) return null;
 
   return (
-    <div className="py-8 px-4 lg:px-16 bg-gradient-to-b from-gray-50 to-white">
+    <div className="py-8 px-4 lg:px-16 bg-white">
       <div className="flex items-center justify-between gap-2 sm:gap-4 mb-4 sm:mb-6">
         <div className="min-w-0">
-          <h2 className="text-base sm:text-2xl md:text-3xl font-bold text-gray-800 flex items-center gap-1.5 sm:gap-2">
-            <Clock className="w-5 h-5 sm:w-8 sm:h-8 text-emerald-500 shrink-0" />
+          <h2 className="text-base sm:text-2xl md:text-3xl font-bold text-gray-800">
             <span className="truncate">Recently Added</span>
           </h2>
           <p className="text-gray-500 mt-0.5 sm:mt-1 text-xs sm:text-base hidden sm:block">Newest products — auto-scrolling</p>

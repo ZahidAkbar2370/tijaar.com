@@ -90,7 +90,7 @@ export function ProductCardSkeletonRow({ count = 8, layout = "grid" }) {
   );
 }
 
-export default function ProductCard({ product, showAddToCart = true, showBuyNow = true, compact = false, layout = "grid", hideStoreInfo = false }) {
+export default function ProductCard({ product, showAddToCart = true, showBuyNow = true, compact = false, layout = "grid", hideStoreInfo = false, shopMobileCompact = false }) {
   const router = useRouter();
   const { formatPrice } = useMarket();
   const { addToCart, clearCart } = useCart();
@@ -313,7 +313,7 @@ export default function ProductCard({ product, showAddToCart = true, showBuyNow 
           ) : null}
           <div className="flex items-center gap-2 mt-auto pt-1">
             {(product.vendor || storeUrl) && !hideStoreInfo && (
-              <div className="flex items-center gap-1.5 min-w-0 flex-1">
+              <div className={`flex items-center gap-1.5 min-w-0 flex-1 ${shopMobileCompact ? "hidden sm:flex" : ""}`}>
                 <StoreLogo />
                 <span className="text-[11px] text-gray-500 truncate">{product.vendor}</span>
                 {city && <span className="text-[10px] text-gray-400 truncate hidden sm:inline">· {city}</span>}
@@ -325,10 +325,13 @@ export default function ProductCard({ product, showAddToCart = true, showBuyNow 
                   type="button"
                   onClick={handleAddToCart}
                   disabled={outOfStock}
+                  aria-label={outOfStock ? "Out of stock" : "Add to cart"}
                   className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-gradient-to-r from-[#1790d7] to-[#4db3e8] text-white rounded-lg text-[11px] font-semibold disabled:opacity-40"
                 >
                   <ShoppingCart className="w-3.5 h-3.5" />
-                  {outOfStock ? "Out of Stock" : "Add"}
+                  <span className="hidden sm:inline">
+                    {outOfStock ? "Out of Stock" : "Add"}
+                  </span>
                 </button>
                 {showBuyNow && (
                   <button
@@ -385,14 +388,14 @@ export default function ProductCard({ product, showAddToCart = true, showBuyNow 
       </Link>
 
       <div className="px-3 pt-2.5 pb-3 flex flex-col flex-1 min-h-0 gap-2">
-        {/* 2. Title left · Price right */}
-        <div className="flex items-start justify-between gap-2 min-w-0">
+        {/* 2. Title · Price — stacked on mobile shop for readable titles */}
+        <div className={`flex gap-2 min-w-0 ${shopMobileCompact ? "flex-col sm:flex-row sm:items-start sm:justify-between" : "items-start justify-between"}`}>
           <Link href={`/product/${product.slug}`} target="_blank" rel="noopener noreferrer" onClick={trackClick} className="block min-w-0 flex-1">
-            <h3 className="text-[13px] sm:text-sm font-semibold text-[#0f2744] leading-snug line-clamp-2 group-hover:text-[#1790d7] transition-colors">
+            <h3 className={`text-[13px] sm:text-sm font-semibold text-[#0f2744] leading-snug group-hover:text-[#1790d7] transition-colors ${shopMobileCompact ? "line-clamp-3 sm:line-clamp-2" : "line-clamp-2"}`}>
               {product.title || product.name}
             </h3>
           </Link>
-          <div className="shrink-0 text-right pt-0.5">
+          <div className={`shrink-0 ${shopMobileCompact ? "text-left sm:text-right sm:pt-0.5" : "text-right pt-0.5"}`}>
             {showCompare && (
               <p className="text-[10px] text-gray-400 line-through leading-none mb-0.5">{originalPriceStr}</p>
             )}
@@ -455,9 +458,9 @@ export default function ProductCard({ product, showAddToCart = true, showBuyNow 
           </div>
         )}
 
-        {/* 4. Store inner card */}
+        {/* 4. Store inner card — hidden on mobile for /shop */}
         {!hideStoreInfo && (product.vendor || product.vendor_logo || storeUrl) && (
-          <div className="rounded-xl border border-gray-100 bg-gradient-to-br from-gray-50 to-white p-2 sm:p-2.5">
+          <div className={`rounded-xl border border-gray-100 bg-gradient-to-br from-gray-50 to-white p-2 sm:p-2.5 ${shopMobileCompact ? "hidden sm:block" : ""}`}>
             <div className="flex items-center gap-2 min-w-0">
               <StoreLogo size="md" />
               <div className="min-w-0 flex-1">
@@ -504,10 +507,12 @@ export default function ProductCard({ product, showAddToCart = true, showBuyNow 
               onClick={handleAddToCart}
               disabled={outOfStock}
               aria-label={outOfStock ? "Out of stock" : hasVariants ? "Select options" : "Add to cart"}
-              className="inline-flex items-center justify-center gap-1 sm:gap-1.5 py-2 sm:py-2.5 rounded-xl bg-gradient-to-r from-[#1790d7] to-[#4db3e8] text-white text-[11px] sm:text-[12px] font-semibold shadow-sm shadow-[#1790d7]/20 hover:opacity-95 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+              className="inline-flex items-center justify-center gap-1 sm:gap-1.5 py-2 sm:py-2.5 px-2 sm:px-0 rounded-xl bg-gradient-to-r from-[#1790d7] to-[#4db3e8] text-white text-[11px] sm:text-[12px] font-semibold shadow-sm shadow-[#1790d7]/20 hover:opacity-95 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
             >
-              <ShoppingCart className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
-              <span className="truncate">{outOfStock ? "Out of Stock" : "Add to cart"}</span>
+              <ShoppingCart className="w-4 h-4 sm:w-3.5 sm:h-3.5 shrink-0" aria-hidden="true" />
+              <span className="truncate hidden sm:inline">
+                {outOfStock ? "Out of Stock" : "Add to cart"}
+              </span>
             </button>
             {showBuyNow && (
               <button
@@ -517,7 +522,7 @@ export default function ProductCard({ product, showAddToCart = true, showBuyNow 
                 aria-label={outOfStock ? "Out of stock" : "Buy it now"}
                 className="inline-flex items-center justify-center gap-1 sm:gap-1.5 py-2 sm:py-2.5 rounded-xl border-2 border-[#1790d7] text-[#1790d7] bg-white text-[11px] sm:text-[12px] font-semibold hover:bg-[#1790d7]/5 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
               >
-                <Zap className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
+                <Zap className="w-3.5 h-3.5 shrink-0 hidden sm:block" aria-hidden="true" />
                 <span className="truncate">Buy now</span>
               </button>
             )}

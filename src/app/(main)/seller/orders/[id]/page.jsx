@@ -6,9 +6,10 @@ import Link from "next/link";
 import { Truck, Send, ChevronDown, ExternalLink, Printer } from "lucide-react";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { sellerOrdersApi, sellerShipmentApi, getBackendBaseUrl } from "@/lib/api";
-import { openCourierTracking, getCourierCn, getCourierLabel } from "@/lib/courier";
+import { openCourierTracking, getCourierCn, getCourierLabel, courierLabel, enabledCourierOptions, defaultCourierValue } from "@/lib/courier";
 import { useMarket } from "@/context/MarketContext";
 import { useSnackbar } from "@/context/SnackbarContext";
+import { useSiteSettings } from "@/context/SiteSettingsContext";
 import { printShipmentSlip } from "@/lib/printShipmentSlip";
 
 function feeLabel(name, type, rate) {
@@ -21,15 +22,24 @@ function feeLabel(name, type, rate) {
 function VendorOrderDetail({ orderId }) {
   const { formatPrice } = useMarket();
   const { showSuccess, showError } = useSnackbar();
+  const { enabled_couriers: enabledCouriers } = useSiteSettings();
+  const courierOptions = enabledCourierOptions(enabledCouriers);
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [trackingForm, setTrackingForm] = useState({ carrier: "tcs", tracking_number: "", tracking_url: "" });
+  const [trackingForm, setTrackingForm] = useState({ carrier: "", tracking_number: "", tracking_url: "" });
   const [addingTracking, setAddingTracking] = useState(false);
   const [editingShipmentId, setEditingShipmentId] = useState(null);
-  const [editTrackingForm, setEditTrackingForm] = useState({ carrier: "tcs", tracking_number: "", tracking_url: "" });
+  const [editTrackingForm, setEditTrackingForm] = useState({ carrier: "", tracking_number: "", tracking_url: "" });
   const [statusUpdating, setStatusUpdating] = useState(null);
   const [statusMenuOpen, setStatusMenuOpen] = useState(null);
   const [actionLoading, setActionLoading] = useState(false);
+
+  useEffect(() => {
+    const next = defaultCourierValue(enabledCouriers, trackingForm.carrier);
+    if (next && next !== trackingForm.carrier) {
+      setTrackingForm((p) => ({ ...p, carrier: next }));
+    }
+  }, [enabledCouriers]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handlePrintCustomerDetails = (shipment = null) => {
     if (!order) return;
@@ -146,7 +156,7 @@ function VendorOrderDetail({ orderId }) {
         tracking_url: trackingForm.tracking_url?.trim() || undefined,
       });
       showSuccess?.("Tracking added.");
-      setTrackingForm({ carrier: "tcs", tracking_number: "", tracking_url: "" });
+      setTrackingForm({ carrier: defaultCourierValue(enabledCouriers), tracking_number: "", tracking_url: "" });
       loadOrder();
     } catch (err) {
       showError?.(err?.data?.message || err?.message || "Failed to add tracking");
@@ -468,13 +478,19 @@ function VendorOrderDetail({ orderId }) {
                       <div>
                         <label className="block text-xs font-medium text-gray-600 mb-1">Carrier *</label>
                         <select
-                          value={editTrackingForm.carrier === "leopards" ? "leopards" : "tcs"}
+                          value={editTrackingForm.carrier}
                           onChange={(e) => setEditTrackingForm((p) => ({ ...p, carrier: e.target.value }))}
                           className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm"
                           required
+                          disabled={courierOptions.length === 0}
                         >
-                          <option value="tcs">TCS</option>
-                          <option value="leopards">Leopard Courier</option>
+                          {courierOptions.length === 0 ? (
+                            <option value="">No couriers enabled</option>
+                          ) : (
+                            courierOptions.map((o) => (
+                              <option key={o.value} value={o.value}>{o.label}</option>
+                            ))
+                          )}
                         </select>
                       </div>
                       <div>
@@ -512,7 +528,7 @@ function VendorOrderDetail({ orderId }) {
                     <div className="flex flex-wrap items-center justify-between gap-3">
                       <div>
                         <p className="font-medium text-gray-900">
-                          {s.carrier === "tcs" ? "TCS" : s.carrier === "leopards" || s.carrier === "lcs" ? "Leopard Courier (LCS)" : (s.carrier || (getCourierCn(s) ? getCourierLabel(s).replace(" CN", " Courier") : "—"))}
+                          {courierLabel(s.carrier) || (getCourierCn(s) ? getCourierLabel(s).replace(" CN", "") : "—")}
                         </p>
                         {getCourierCn(s) && (
                           <p className="text-sm text-gray-600">
@@ -552,7 +568,11 @@ function VendorOrderDetail({ orderId }) {
                             type="button"
                             onClick={() => {
                               setEditingShipmentId(s.id);
-                              setEditTrackingForm({ carrier: s.carrier || "tcs", tracking_number: s.tracking_number || getCourierCn(s) || "", tracking_url: s.tracking_url || "" });
+                              setEditTrackingForm({
+                                carrier: defaultCourierValue(enabledCouriers, s.carrier),
+                                tracking_number: s.tracking_number || getCourierCn(s) || "",
+                                tracking_url: s.tracking_url || "",
+                              });
                             }}
                             className="px-3 py-1.5 border border-gray-200 rounded-lg text-sm font-medium hover:bg-white"
                           >
@@ -608,19 +628,25 @@ function VendorOrderDetail({ orderId }) {
         {(order.can_add_tracking || order.seller_display_status === "approved") && !order.shipments?.some((s) => s.tracking_number || getCourierCn(s)) && (
           <form onSubmit={handleAddTracking} className="space-y-3 mt-4">
             <p className="text-sm text-gray-600 mb-4">
-              After you ship the parcel, select the courier and enter the Tracking ID. Status updates automatically from TCS / Leopard every hour.
+              After you ship the parcel, select an enabled courier and enter the Tracking ID.
             </p>
+            {courierOptions.length === 0 ? (
+              <p className="text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-4 py-2">
+                No couriers are enabled. Ask admin to enable TCS, Leopard/LCS, or PostEx under Settings → Courier.
+              </p>
+            ) : (
             <div className="grid sm:grid-cols-3 gap-3">
               <div>
                 <label className="block text-xs font-medium text-gray-600 mb-1">Courier *</label>
                 <select
-                  value={trackingForm.carrier === "leopards" ? "leopards" : "tcs"}
+                  value={trackingForm.carrier}
                   onChange={(e) => setTrackingForm((p) => ({ ...p, carrier: e.target.value }))}
                   className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm"
                   required
                 >
-                  <option value="tcs">TCS</option>
-                  <option value="leopards">Leopard Courier (LCS)</option>
+                  {courierOptions.map((o) => (
+                    <option key={o.value} value={o.value}>{o.label}</option>
+                  ))}
                 </select>
               </div>
               <div>
@@ -644,9 +670,10 @@ function VendorOrderDetail({ orderId }) {
                 />
               </div>
             </div>
+            )}
             <button
               type="submit"
-              disabled={addingTracking}
+              disabled={addingTracking || courierOptions.length === 0}
               className="inline-flex items-center gap-2 px-4 py-2.5 bg-amber-500 text-white rounded-xl text-sm font-medium hover:bg-amber-600 disabled:opacity-50"
             >
               <Send className="w-4 h-4" />

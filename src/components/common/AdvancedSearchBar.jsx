@@ -13,6 +13,7 @@ export default function AdvancedSearchBar() {
   const [categorySlug, setCategorySlug] = useState("");
   const [categoryName, setCategoryName] = useState("All Categories");
   const [categories, setCategories] = useState([]);
+  const [categoryFilter, setCategoryFilter] = useState("");
   const [suggestions, setSuggestions] = useState({ products: [], categories: [] });
   const [showDropdown, setShowDropdown] = useState(false);
   const [showDeptDropdown, setShowDeptDropdown] = useState(false);
@@ -21,6 +22,7 @@ export default function AdvancedSearchBar() {
   const debounceRef = useRef(null);
   const containerRef = useRef(null);
   const deptButtonRef = useRef(null);
+  const categorySearchRef = useRef(null);
 
   useEffect(() => {
     categoryApi.list(true).then((r) => setCategories(r.categories || [])).catch(() => setCategories([]));
@@ -29,9 +31,12 @@ export default function AdvancedSearchBar() {
   useEffect(() => {
     if (showDeptDropdown && deptButtonRef.current) {
       const rect = deptButtonRef.current.getBoundingClientRect();
-      setDeptDropdownRect({ top: rect.bottom + 4, left: rect.left, width: rect.width });
+      setDeptDropdownRect({ top: rect.bottom + 4, left: rect.left, width: Math.max(rect.width, 260) });
+      // Focus category search after portal mounts
+      requestAnimationFrame(() => categorySearchRef.current?.focus());
     } else {
       setDeptDropdownRect(null);
+      setCategoryFilter("");
     }
   }, [showDeptDropdown]);
 
@@ -79,6 +84,11 @@ export default function AdvancedSearchBar() {
   };
 
   const hasSuggestions = suggestions.products.length > 0 || suggestions.categories.length > 0;
+  const categoryFilterNorm = categoryFilter.trim().toLowerCase();
+  const filteredCategories = categoryFilterNorm
+    ? categories.filter((c) => String(c.name || "").toLowerCase().includes(categoryFilterNorm))
+    : categories;
+
   const selectCategory = (c) => {
     if (!c) {
       setCategorySlug("");
@@ -87,6 +97,7 @@ export default function AdvancedSearchBar() {
       setCategorySlug(c.slug);
       setCategoryName(c.name);
     }
+    setCategoryFilter("");
     setShowDeptDropdown(false);
   };
 
@@ -108,28 +119,61 @@ export default function AdvancedSearchBar() {
           {showDeptDropdown && deptDropdownRect && typeof document !== "undefined" && createPortal(
             <div
               id="dept-dropdown-portal"
-              className="fixed w-64 bg-white rounded-xl shadow-2xl border-2 border-gray-100 py-2 z-[9999] max-h-80 overflow-y-auto"
-              style={{ top: deptDropdownRect.top, left: deptDropdownRect.left }}
+              className="fixed w-64 bg-white rounded-xl shadow-2xl border-2 border-gray-100 z-[9999] overflow-hidden flex flex-col max-h-80"
+              style={{ top: deptDropdownRect.top, left: deptDropdownRect.left, width: deptDropdownRect.width }}
+              onMouseDown={(e) => e.stopPropagation()}
             >
-              <button
-                type="button"
-                onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); selectCategory(null); }}
-                className={`w-full flex items-center gap-3 px-4 py-3 text-left text-sm font-medium transition-colors hover:bg-[#1790d7]/5 ${!categorySlug ? "bg-[#1790d7]/10 text-[#1790d7]" : "text-gray-700"}`}
-              >
-                <span className="w-2 h-2 rounded-full bg-gray-400 shrink-0" />
-                All Categories
-              </button>
-              {categories.map((c) => (
-                <button
-                  key={c.id}
-                  type="button"
-                  onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); selectCategory(c); }}
-                  className={`w-full flex items-center gap-3 px-4 py-3 text-left text-sm font-medium transition-colors hover:bg-[#1790d7]/5 ${categorySlug === c.slug ? "bg-[#1790d7]/10 text-[#1790d7]" : "text-gray-700"}`}
-                >
-                  <span className="w-2 h-2 rounded-full bg-[#1790d7]/60 shrink-0" />
-                  {c.name}
-                </button>
-              ))}
+              <div className="sticky top-0 z-10 p-2 border-b border-gray-100 bg-white">
+                <div className="relative">
+                  <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 pointer-events-none" aria-hidden />
+                  <input
+                    ref={categorySearchRef}
+                    type="text"
+                    value={categoryFilter}
+                    onChange={(e) => setCategoryFilter(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Escape") {
+                        e.stopPropagation();
+                        setShowDeptDropdown(false);
+                      }
+                      // Keep Enter from submitting the main product search form
+                      if (e.key === "Enter") e.preventDefault();
+                    }}
+                    placeholder="Search categories..."
+                    className="w-full pl-8 pr-3 py-2 text-sm rounded-lg border border-gray-200 bg-gray-50 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#1790d7]/30 focus:border-[#1790d7] focus:bg-white"
+                    aria-label="Search categories"
+                  />
+                </div>
+              </div>
+              <div className="overflow-y-auto py-1 flex-1 min-h-0">
+                {!categoryFilterNorm && (
+                  <button
+                    type="button"
+                    onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); selectCategory(null); }}
+                    className={`w-full flex items-center gap-3 px-4 py-3 text-left text-sm font-medium transition-colors hover:bg-[#1790d7]/5 ${!categorySlug ? "bg-[#1790d7]/10 text-[#1790d7]" : "text-gray-700"}`}
+                  >
+                    <span className="w-2 h-2 rounded-full bg-gray-400 shrink-0" />
+                    All Categories
+                  </button>
+                )}
+                {filteredCategories.length === 0 ? (
+                  <p className="px-4 py-6 text-center text-sm text-gray-500">
+                    No categories match &quot;{categoryFilter.trim()}&quot;
+                  </p>
+                ) : (
+                  filteredCategories.map((c) => (
+                    <button
+                      key={c.id}
+                      type="button"
+                      onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); selectCategory(c); }}
+                      className={`w-full flex items-center gap-3 px-4 py-3 text-left text-sm font-medium transition-colors hover:bg-[#1790d7]/5 ${categorySlug === c.slug ? "bg-[#1790d7]/10 text-[#1790d7]" : "text-gray-700"}`}
+                    >
+                      <span className="w-2 h-2 rounded-full bg-[#1790d7]/60 shrink-0" />
+                      {c.name}
+                    </button>
+                  ))
+                )}
+              </div>
             </div>,
             document.body
           )}

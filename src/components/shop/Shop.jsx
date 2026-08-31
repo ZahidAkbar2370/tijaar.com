@@ -20,6 +20,7 @@ import {
   Check,
   RotateCcw,
   Sparkles,
+  Store,
 } from "lucide-react";
 import { productApi, categoryApi } from "@/lib/api";
 import ProductCard, { ProductCardSkeletonRow } from "@/components/public/ProductCard";
@@ -36,8 +37,14 @@ const sortOptions = [
 const conditionOptions = [
   { value: "", label: "All Conditions" },
   { value: "new", label: "New" },
+  { value: "used", label: "Used" },
   { value: "refurbished", label: "Refurbished" },
-  { value: "used", label: "Pre-owned" },
+];
+
+const sellerTypeOptions = [
+  { value: "", label: "All Sellers" },
+  { value: "business", label: "Business / Store" },
+  { value: "private", label: "Private Seller" },
 ];
 
 const stockOptions = [
@@ -206,7 +213,9 @@ export default function Shop() {
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [priceRange, setPriceRange] = useState({ min: "", max: "" });
   const [selectedCategory, setSelectedCategory] = useState("");
+  const [categorySearch, setCategorySearch] = useState("");
   const [selectedCondition, setSelectedCondition] = useState("");
+  const [selectedSellerType, setSelectedSellerType] = useState("");
   const [selectedStock, setSelectedStock] = useState("");
   const [selectedRating, setSelectedRating] = useState(null);
   const [sortBy, setSortBy] = useState("newest");
@@ -221,6 +230,8 @@ export default function Shop() {
   
   const loaderRef = useRef(null);
   const searchTimeout = useRef(null);
+  const priceDebounce = useRef(null);
+  const [debouncedPriceRange, setDebouncedPriceRange] = useState({ min: "", max: "" });
 
   // Debounce search
   useEffect(() => {
@@ -231,23 +242,39 @@ export default function Shop() {
     return () => clearTimeout(searchTimeout.current);
   }, [searchQuery]);
 
-  // Fetch categories
+  // Debounce price so filters apply reliably after typing
+  useEffect(() => {
+    if (priceDebounce.current) clearTimeout(priceDebounce.current);
+    priceDebounce.current = setTimeout(() => {
+      setDebouncedPriceRange(priceRange);
+    }, 400);
+    return () => clearTimeout(priceDebounce.current);
+  }, [priceRange]);
+
+  // Fetch categories (flat list for filter search)
   useEffect(() => {
     categoryApi.list().then((res) => setCategories(res.categories || [])).catch(() => {});
   }, []);
+
+  const filteredCategories = useMemo(() => {
+    const q = categorySearch.trim().toLowerCase();
+    if (!q) return categories;
+    return categories.filter((c) => (c.name || "").toLowerCase().includes(q) || (c.slug || "").toLowerCase().includes(q));
+  }, [categories, categorySearch]);
 
   // Build API params
   const buildParams = useCallback((pageNum = 1) => {
     const params = { per_page: ITEMS_PER_PAGE, page: pageNum, sort: sortBy };
     if (debouncedSearch) params.search = debouncedSearch;
-    if (priceRange.min) params.min_price = priceRange.min;
-    if (priceRange.max) params.max_price = priceRange.max;
+    if (debouncedPriceRange.min) params.min_price = debouncedPriceRange.min;
+    if (debouncedPriceRange.max) params.max_price = debouncedPriceRange.max;
     if (selectedCategory) params.category_slug = selectedCategory;
     if (selectedCondition) params.condition = selectedCondition;
+    if (selectedSellerType) params.seller_type = selectedSellerType;
     if (selectedStock) params.availability = selectedStock;
     if (selectedRating) params.min_rating = selectedRating;
     return params;
-  }, [debouncedSearch, priceRange, selectedCategory, selectedCondition, selectedStock, selectedRating, sortBy]);
+  }, [debouncedSearch, debouncedPriceRange, selectedCategory, selectedCondition, selectedSellerType, selectedStock, selectedRating, sortBy]);
 
   // Fetch products (initial load or filter change)
   useEffect(() => {
@@ -319,13 +346,17 @@ export default function Shop() {
       const cat = categories.find((c) => c.slug === selectedCategory);
       filters.push({ key: "category", label: cat?.name || selectedCategory, onRemove: () => setSelectedCategory("") });
     }
-    if (priceRange.min || priceRange.max) {
-      const label = `Rs ${priceRange.min || "0"} - ${priceRange.max || "Any"}`;
+    if (debouncedPriceRange.min || debouncedPriceRange.max) {
+      const label = `Rs ${debouncedPriceRange.min || "0"} - ${debouncedPriceRange.max || "Any"}`;
       filters.push({ key: "price", label, onRemove: () => setPriceRange({ min: "", max: "" }) });
     }
     if (selectedCondition) {
       const cond = conditionOptions.find((c) => c.value === selectedCondition);
       filters.push({ key: "condition", label: cond?.label || selectedCondition, onRemove: () => setSelectedCondition("") });
+    }
+    if (selectedSellerType) {
+      const st = sellerTypeOptions.find((c) => c.value === selectedSellerType);
+      filters.push({ key: "seller_type", label: st?.label || selectedSellerType, onRemove: () => setSelectedSellerType("") });
     }
     if (selectedStock) {
       const stock = stockOptions.find((s) => s.value === selectedStock);
@@ -335,12 +366,14 @@ export default function Shop() {
       filters.push({ key: "rating", label: `${selectedRating}+ Stars`, onRemove: () => setSelectedRating(null) });
     }
     return filters;
-  }, [selectedCategory, priceRange, selectedCondition, selectedStock, selectedRating, categories]);
+  }, [selectedCategory, debouncedPriceRange, selectedCondition, selectedSellerType, selectedStock, selectedRating, categories]);
 
   const clearAllFilters = () => {
     setSelectedCategory("");
+    setCategorySearch("");
     setPriceRange({ min: "", max: "" });
     setSelectedCondition("");
+    setSelectedSellerType("");
     setSelectedStock("");
     setSelectedRating(null);
     setSearchQuery("");
@@ -352,8 +385,19 @@ export default function Shop() {
     <div className={`${isMobile ? "" : "space-y-0"}`}>
       {/* Categories */}
       <FilterSection title="Categories" icon={Layers}>
-        <div className="space-y-1 max-h-48 overflow-y-auto pr-1">
+        <div className="relative mb-2">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <input
+            type="search"
+            value={categorySearch}
+            onChange={(e) => setCategorySearch(e.target.value)}
+            placeholder="Search categories..."
+            className="w-full pl-9 pr-3 py-2 rounded-xl border border-gray-200 bg-gray-50 text-sm focus:outline-none focus:ring-2 focus:ring-[#1790d7]/20 focus:border-[#1790d7] focus:bg-white"
+          />
+        </div>
+        <div className="space-y-1 max-h-52 overflow-y-auto pr-1">
           <button
+            type="button"
             onClick={() => setSelectedCategory("")}
             className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-sm transition-all ${
               !selectedCategory ? "bg-[#1790d7] text-white font-medium" : "text-gray-700 hover:bg-gray-50"
@@ -362,18 +406,23 @@ export default function Shop() {
             All Categories
             {!selectedCategory && <Check className="w-4 h-4" />}
           </button>
-          {categories.map((cat) => (
-            <button
-              key={cat.slug}
-              onClick={() => setSelectedCategory(cat.slug)}
-              className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-sm transition-all ${
-                selectedCategory === cat.slug ? "bg-[#1790d7] text-white font-medium" : "text-gray-700 hover:bg-gray-50"
-              }`}
-            >
-              <span className="truncate">{cat.name}</span>
-              {selectedCategory === cat.slug && <Check className="w-4 h-4" />}
-            </button>
-          ))}
+          {filteredCategories.length === 0 ? (
+            <p className="px-3 py-2 text-xs text-gray-500">No categories match</p>
+          ) : (
+            filteredCategories.map((cat) => (
+              <button
+                type="button"
+                key={cat.id || cat.slug}
+                onClick={() => setSelectedCategory(cat.slug)}
+                className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-sm transition-all ${
+                  selectedCategory === cat.slug ? "bg-[#1790d7] text-white font-medium" : "text-gray-700 hover:bg-gray-50"
+                }`}
+              >
+                <span className="truncate text-left">{cat.name}</span>
+                {selectedCategory === cat.slug && <Check className="w-4 h-4 shrink-0" />}
+              </button>
+            ))
+          )}
         </div>
       </FilterSection>
 
@@ -401,12 +450,13 @@ export default function Shop() {
         </div>
       </FilterSection>
 
-      {/* Condition */}
+      {/* Condition — same values as sell item form */}
       <FilterSection title="Condition" icon={Tag} defaultOpen={false}>
         <div className="space-y-1">
           {conditionOptions.map((opt) => (
             <button
-              key={opt.value}
+              type="button"
+              key={opt.value || "all-cond"}
               onClick={() => setSelectedCondition(opt.value)}
               className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-sm transition-all ${
                 selectedCondition === opt.value ? "bg-[#1790d7] text-white font-medium" : "text-gray-700 hover:bg-gray-50"
@@ -419,12 +469,31 @@ export default function Shop() {
         </div>
       </FilterSection>
 
+      <FilterSection title="Seller Type" icon={Store} defaultOpen={false}>
+        <div className="space-y-1">
+          {sellerTypeOptions.map((opt) => (
+            <button
+              type="button"
+              key={opt.value || "all-sellers"}
+              onClick={() => setSelectedSellerType(opt.value)}
+              className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-sm transition-all ${
+                selectedSellerType === opt.value ? "bg-[#1790d7] text-white font-medium" : "text-gray-700 hover:bg-gray-50"
+              }`}
+            >
+              {opt.label}
+              {selectedSellerType === opt.value && <Check className="w-4 h-4" />}
+            </button>
+          ))}
+        </div>
+      </FilterSection>
+
       {/* Stock Status */}
       <FilterSection title="Availability" icon={Package} defaultOpen={false}>
         <div className="space-y-1">
           {stockOptions.map((opt) => (
             <button
-              key={opt.value}
+              type="button"
+              key={opt.value || "all-stock"}
               onClick={() => setSelectedStock(opt.value)}
               className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-sm transition-all ${
                 selectedStock === opt.value ? "bg-[#1790d7] text-white font-medium" : "text-gray-700 hover:bg-gray-50"
@@ -629,6 +698,7 @@ export default function Shop() {
                       key={product.id}
                       product={product}
                       showAddToCart
+                      shopMobileCompact
                       layout={viewMode === "list" ? "list" : "grid"}
                     />
                   ))}
