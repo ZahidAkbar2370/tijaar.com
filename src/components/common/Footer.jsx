@@ -34,7 +34,7 @@ import {
   Tag,
 } from "lucide-react";
 import { useSiteSettings } from "@/context/SiteSettingsContext";
-import TijaarBrandLogo from "@/components/common/TijaarBrandLogo";
+import SiteLogo from "@/components/common/SiteLogo";
 
 // Footer data: about/tagline and contact come from useSiteSettings(); socialLinks from topbar_social_links
 
@@ -97,13 +97,7 @@ export default function Footer() {
         <div className="py-8 sm:py-12 lg:py-14 grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-x-4 gap-y-6 sm:gap-8 lg:gap-8">
           {/* About & Contact */}
           <div className="col-span-2 lg:col-span-2">
-            <Link
-              href="/"
-              className="inline-block mb-3 sm:mb-5 hover:opacity-90 transition-opacity"
-              aria-label={settings.site_name || "Tijaar home"}
-            >
-              <TijaarBrandLogo height={44} />
-            </Link>
+            <SiteLogo variant="footer" className="mb-3 sm:mb-5" />
             {data.about && (
               <p className="text-gray-400 text-xs sm:text-sm leading-relaxed max-w-sm mb-4 sm:mb-6">{data.about}</p>
             )}
@@ -293,8 +287,8 @@ export default function Footer() {
         {/* Copyright row */}
         <div className="py-4 sm:py-5 border-t border-white/10">
           <div className="flex flex-col md:flex-row items-center justify-between gap-3 sm:gap-4">
-            <p className="text-gray-400 text-xs sm:text-sm">
-              © {new Date().getFullYear()} Tijaar. All rights reserved.
+            <p className="text-gray-400 text-xs sm:text-sm text-center md:text-left">
+              © {new Date().getFullYear()} Tijaar. All rights reserved. Powered by Softwebies
             </p>
             <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-4 md:gap-6">
               <Link href="/terms" className="text-gray-400 hover:text-white text-xs sm:text-sm transition-colors">

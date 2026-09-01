@@ -32,7 +32,7 @@ import { PRODUCT_CARD_GRID_CLASS } from "@/lib/productCardSwiper";
 import { productApi } from "@/lib/api";
 import { useWishlist } from "@/context/WishlistContext";
 import { useSnackbar } from "@/context/SnackbarContext";
-import { useMarket } from "@/context/MarketContext";
+import { stripHtml } from "@/lib/seo";
 import useAuth from "@/hooks/useAuth";
 import useRequireLogin from "@/hooks/useRequireLogin";
 import { resolveMediaUrl, resolveMediaUrls } from "@/lib/media";
@@ -339,10 +339,16 @@ export default function ProductDetail({ product }) {
 
   const handleShare = async () => {
     const url = typeof window !== "undefined" ? window.location.href : "";
+    const shareTitle = product?.name || product?.title || "Tijaar";
+    const shareText = stripHtml(product?.description || product?.short_description || "").slice(0, 200);
     let shared = false;
     try {
       if (navigator.share) {
-        await navigator.share({ title: title || "Tijaar", url });
+        await navigator.share({
+          title: shareTitle,
+          text: shareText || undefined,
+          url,
+        });
         shared = true;
       } else {
         await navigator.clipboard.writeText(url);

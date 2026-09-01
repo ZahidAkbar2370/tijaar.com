@@ -3,6 +3,7 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { siteApi } from "@/lib/api";
 import { SEO_H1_DEFAULTS } from "@/lib/seoHeadings";
+import { SEO_DEFAULTS } from "@/lib/seoDefaults";
 import { TYPOGRAPHY_DEFAULTS, mergeTypography } from "@/lib/typography";
 
 const defaultLogo = "/images/tijaar-logo.png";
@@ -29,9 +30,10 @@ const defaults = {
   favicon_alt: "Tijaar favicon",
   login_logo_url: defaultLogo,
   login_logo_alt: "Tijaar login logo",
-  meta_title: "Tijaar - Multi-Vendor Marketplace",
-  meta_description: "Buy and sell anything, anywhere. Pakistan & Pakistan marketplace.",
-  meta_keywords: "",
+  meta_title: SEO_DEFAULTS.title,
+  meta_description: SEO_DEFAULTS.description,
+  meta_keywords: SEO_DEFAULTS.keywords,
+  meta_author: SEO_DEFAULTS.author,
   seo_h1: SEO_H1_DEFAULTS,
   typography: TYPOGRAPHY_DEFAULTS,
   og_image_url: null,
@@ -79,10 +81,11 @@ export function SiteSettingsProvider({ children }) {
             login_logo_alt: res.login_logo_alt || res.site_logo_alt || defaults.login_logo_alt,
             email_logo_url: res.email_logo_url || null,
             email_banner_url: res.email_banner_url || null,
-            og_image_url: res.og_image_url || null,
+            og_image_url: res.og_image_url || res.site_logo_url || null,
             meta_title: res.meta_title ?? defaults.meta_title,
             meta_description: res.meta_description ?? defaults.meta_description,
-            meta_keywords: res.meta_keywords ?? "",
+            meta_keywords: res.meta_keywords ?? defaults.meta_keywords,
+            meta_author: res.meta_author ?? defaults.meta_author,
             seo_h1: res.seo_h1 && typeof res.seo_h1 === "object"
               ? { ...SEO_H1_DEFAULTS, ...res.seo_h1 }
               : defaults.seo_h1,

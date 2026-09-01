@@ -1,16 +1,12 @@
 import HomePageClient from "./HomePageClient";
-import { generateCmsPageMetadata } from "@/lib/seo";
+import { generateRootMetadata } from "@/lib/seo";
 import { fetchHomeData, mapHomeApiResponse } from "@/lib/serverHome";
 import HeroBackground, { getMobileHeroPreloadHref, getDesktopHeroPreloadHref } from "@/components/home/HeroBackground";
 import { HERO_CRITICAL_CSS } from "@/lib/criticalHeroCss";
 import { LOCAL_HERO_480, LOCAL_HERO_1280 } from "@/lib/imageOptimize";
 
 export async function generateMetadata() {
-  return generateCmsPageMetadata(
-    "home",
-    "Tijaar - Multi-Vendor Marketplace",
-    "Buy and sell anything, anywhere. Pakistan marketplace."
-  );
+  return generateRootMetadata();
 }
 
 export default async function HomePage() {

@@ -24,12 +24,10 @@ import useAuth from "@/hooks/useAuth";
 import useRequireLogin from "@/hooks/useRequireLogin";
 import { useCart } from "@/context/CartContext";
 import { useWishlist } from "@/context/WishlistContext";
-import { useSiteSettings } from "@/context/SiteSettingsContext";
 import AdvancedSearchBar from "./AdvancedSearchBar";
 import NotificationDropdown from "./NotificationDropdown";
 import CartSidebar from "./CartSidebar";
-import { resolveImageAlt, IMAGE_ALT_FALLBACKS } from "@/lib/imageAlt";
-import { optimizeImageUrl, IMAGE_WIDTHS, LOCAL_LOGO_PNG, LOCAL_LOGO_WEBP } from "@/lib/imageOptimize";
+import SiteLogo from "@/components/common/SiteLogo";
 
 const navLinks = [
   { name: "Sellers", path: "/sellers", icon: StoreIcon },
@@ -42,7 +40,6 @@ export default function Navbar() {
   const requireLogin = useRequireLogin();
   const { getCartCount, setIsCartOpen } = useCart();
   const { wishlistItems } = useWishlist();
-  const { site_logo_url, site_name, site_logo_alt } = useSiteSettings();
   const cartCount = getCartCount();
   const wishlistCount = wishlistItems.length;
 
@@ -88,27 +85,7 @@ export default function Navbar() {
   return (
     <header className="bg-white/95 backdrop-blur-md border-b border-gray-100 shadow-sm sticky top-0 z-40">
       <div className="w-full flex justify-between items-center gap-4 py-3 px-4 sm:px-6 lg:px-8">
-        <Link href="/" className="site-logo-wrap site-logo-wrap--header shrink-0 hover:opacity-90 transition-opacity">
-          <img
-            src={optimizeImageUrl(site_logo_url || LOCAL_LOGO_WEBP, { width: IMAGE_WIDTHS.siteLogo, quality: 85 })}
-            alt={resolveImageAlt(site_logo_alt, site_name || IMAGE_ALT_FALLBACKS.siteLogo)}
-            width={140}
-            height={36}
-            sizes="140px"
-            fetchPriority="high"
-            decoding="async"
-            onError={(e) => {
-              const img = e.target;
-              if (!img.src.includes(LOCAL_LOGO_PNG) && !img.src.endsWith(LOCAL_LOGO_WEBP)) {
-                img.src = LOCAL_LOGO_WEBP;
-                return;
-              }
-              if (!img.src.includes(LOCAL_LOGO_PNG)) {
-                img.src = LOCAL_LOGO_PNG;
-              }
-            }}
-          />
-        </Link>
+        <SiteLogo variant="header" priority />
 
         <AdvancedSearchBar />
 

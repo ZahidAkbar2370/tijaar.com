@@ -1,3 +1,6 @@
+import { SEO_DEFAULTS } from "@/lib/seoDefaults";
+import { resolveMediaUrl } from "@/lib/media";
+
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000/api/v1";
 
 export function getSiteUrl() {
@@ -6,6 +9,18 @@ export function getSiteUrl() {
 
 export function getBackendBaseUrl() {
   return API_BASE.replace(/\/api\/v1\/?$/, "");
+}
+
+export function resolveAbsoluteUrl(pathOrUrl, baseUrl = getSiteUrl()) {
+  if (!pathOrUrl) return null;
+  const value = String(pathOrUrl).trim();
+  if (!value) return null;
+  if (/^https?:\/\//i.test(value)) return value;
+  return `${baseUrl}${value.startsWith("/") ? value : `/${value}`}`;
+}
+
+function defaultOgImageUrl(siteUrl = getSiteUrl()) {
+  return resolveAbsoluteUrl(SEO_DEFAULTS.ogImagePath, siteUrl);
 }
 
 function defaultFaviconUrl() {
@@ -60,17 +75,22 @@ export function buildPageMetadata({
   description,
   keywords,
   image,
+  imageAlt = null,
   path,
   noIndex = false,
   siteSettings = null,
   exactTitle = false,
   authors = null,
+  skipSiteKeywords = false,
+  openGraphType = "website",
 }) {
   const siteName = siteSettings?.site_name || "Tijaar";
-  const defaultTitle = siteSettings?.meta_title || `${siteName} - Multi-Vendor Marketplace`;
-  const defaultDesc =
-    siteSettings?.meta_description || "Buy and sell anything, anywhere. Pakistan marketplace.";
-  const keywordsStr = keywords ?? siteSettings?.meta_keywords ?? "";
+  const defaultTitle = siteSettings?.meta_title?.trim() || SEO_DEFAULTS.title;
+  const defaultDesc = siteSettings?.meta_description?.trim() || SEO_DEFAULTS.description;
+  const keywordsStr = skipSiteKeywords
+    ? String(keywords ?? "").trim()
+    : String(keywords ?? siteSettings?.meta_keywords ?? SEO_DEFAULTS.keywords).trim();
+  const defaultAuthor = siteSettings?.meta_author?.trim() || SEO_DEFAULTS.author;
 
   let resolvedTitle = defaultTitle;
   if (title) {
@@ -86,9 +106,19 @@ export function buildPageMetadata({
     description !== undefined && description !== null && String(description).trim() !== ""
       ? description
       : defaultDesc;
-  const ogImage = image || siteSettings?.og_image_url || siteSettings?.site_logo_url || null;
-  const favicon = siteSettings?.favicon_url || defaultFaviconUrl();
   const siteUrl = getSiteUrl();
+  const ogImageRaw =
+    image ||
+    siteSettings?.og_image_url ||
+    siteSettings?.site_logo_url ||
+    SEO_DEFAULTS.ogImagePath;
+  const ogImage = resolveAbsoluteUrl(ogImageRaw, siteUrl) || defaultOgImageUrl(siteUrl);
+  const ogImageAlt =
+    imageAlt?.trim() ||
+    siteSettings?.og_image_alt?.trim() ||
+    siteSettings?.site_logo_alt?.trim() ||
+    siteName;
+  const favicon = siteSettings?.favicon_url || defaultFaviconUrl();
   const canonical = path
     ? `${siteUrl}${path.startsWith("/") ? path : `/${path}`}`
     : siteUrl;
@@ -104,10 +134,10 @@ export function buildPageMetadata({
       url: canonical,
       siteName,
       locale: "en_US",
-      type: "website",
+      type: openGraphType,
     },
     twitter: {
-      card: ogImage ? "summary_large_image" : "summary",
+      card: "summary_large_image",
       title: resolvedTitle,
       description: resolvedDesc,
     },
@@ -120,13 +150,43 @@ export function buildPageMetadata({
   };
 
   if (keywordsStr) metadata.keywords = keywordsStr;
-  if (authors?.length) metadata.authors = authors;
-  if (ogImage) {
-    metadata.openGraph.images = [{ url: ogImage, alt: title || siteName }];
-    metadata.twitter.images = [ogImage];
-  }
+  metadata.authors = authors?.length
+    ? authors
+    : [{ name: defaultAuthor, url: siteUrl }];
+  metadata.openGraph.images = [{ url: ogImage, alt: ogImageAlt }];
+  metadata.twitter.images = [ogImage];
 
   return metadata;
+}
+
+/** Open Graph / social preview for a product detail page. */
+export function buildProductMetadata(product, slug, siteSettings) {
+  if (!product) {
+    return buildPageMetadata({
+      title: "Product Not Found",
+      description: "This product could not be found on Tijaar.",
+      path: `/product/${slug}`,
+      siteSettings,
+    });
+  }
+
+  const coverImage = resolveMediaUrl(product.thumbnail || product.image || product.images?.[0]);
+  const description = stripHtml(product.description || product.short_description || "").trim();
+  const shareDescription = description.slice(0, 160) || `Shop ${product.name} on Tijaar.`;
+
+  return buildPageMetadata({
+    title: product.name,
+    description: shareDescription,
+    keywords: product.meta_keywords?.trim() || "",
+    exactTitle: true,
+    image: coverImage || null,
+    imageAlt: product.image_alt?.trim() || product.name,
+    path: `/product/${slug}`,
+    siteSettings,
+    authors: [{ name: SEO_DEFAULTS.author, url: getSiteUrl() }],
+    skipSiteKeywords: true,
+    openGraphType: "website",
+  });
 }
 
 export async function generateStaticPageMetadata({
@@ -159,24 +219,25 @@ export async function generateCmsPageMetadata(slug, fallbackTitle, fallbackDescr
   return buildPageMetadata({
     title: hasMetaTitle
       ? page.meta_title
-      : page?.banner_title || page?.title || fallbackTitle,
+      : settings?.meta_title?.trim() || page?.banner_title || page?.title || fallbackTitle,
     description: page?.meta_description?.trim()
       ? page.meta_description
-      : page?.banner_subtitle || fallbackDescription,
-    keywords: page?.meta_keywords?.trim() ? page.meta_keywords : undefined,
+      : settings?.meta_description?.trim() || page?.banner_subtitle || fallbackDescription,
+    keywords: page?.meta_keywords?.trim() ? page.meta_keywords : settings?.meta_keywords,
     path,
     siteSettings: settings,
-    exactTitle: hasMetaTitle,
+    exactTitle: hasMetaTitle || Boolean(settings?.meta_title?.trim()),
   });
 }
 
 export async function generateRootMetadata() {
   const settings = await fetchSiteSettings();
   return buildPageMetadata({
-    title: settings?.meta_title,
-    description: settings?.meta_description,
-    keywords: settings?.meta_keywords,
+    title: settings?.meta_title?.trim() || SEO_DEFAULTS.title,
+    description: settings?.meta_description?.trim() || SEO_DEFAULTS.description,
+    keywords: settings?.meta_keywords?.trim() || SEO_DEFAULTS.keywords,
     path: "/",
     siteSettings: settings,
+    exactTitle: true,
   });
 }

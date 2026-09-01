@@ -1,10 +1,9 @@
 import dynamic from "next/dynamic";
 import ProductNotFound from "@/components/public/ProductNotFound";
 import {
-  buildPageMetadata,
+  buildProductMetadata,
   fetchApi,
   fetchSiteSettings,
-  stripHtml,
 } from "@/lib/seo";
 
 const ProductDetail = dynamic(() => import("./ProductDetail"), {
@@ -35,26 +34,7 @@ export async function generateMetadata({ params }) {
     fetchApi(`/products/${slug}`, 60),
   ]);
   const product = data?.product;
-  if (!product) {
-    return buildPageMetadata({
-      title: "Product Not Found",
-      description: "This product could not be found on Tijaar.",
-      path: `/product/${slug}`,
-      siteSettings: settings,
-    });
-  }
-  return buildPageMetadata({
-    title: product.meta_title?.trim() || product.name,
-    description:
-      stripHtml(
-        product.meta_description || product.short_description || product.description || ""
-      ).slice(0, 160) || `Shop ${product.name} on Tijaar.`,
-    keywords: product.meta_keywords?.trim() || undefined,
-    exactTitle: Boolean(product.meta_title?.trim()),
-    image: product.thumbnail || product.image,
-    path: `/product/${slug}`,
-    siteSettings: settings,
-  });
+  return buildProductMetadata(product, slug, settings);
 }
 
 export default async function ProductPage({ params }) {
