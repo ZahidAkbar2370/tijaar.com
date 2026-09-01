@@ -34,8 +34,7 @@ import {
   Tag,
 } from "lucide-react";
 import { useSiteSettings } from "@/context/SiteSettingsContext";
-import { resolveImageAlt, IMAGE_ALT_FALLBACKS } from "@/lib/imageAlt";
-import { optimizeImageUrl, IMAGE_WIDTHS } from "@/lib/imageOptimize";
+import TijaarBrandLogo from "@/components/common/TijaarBrandLogo";
 
 // Footer data: about/tagline and contact come from useSiteSettings(); socialLinks from topbar_social_links
 
@@ -71,8 +70,6 @@ const support = [
 export default function Footer() {
   const settings = useSiteSettings();
   const data = {
-    logo: settings.site_logo_url || "/images/tijaar-logo.png",
-    logoAlt: settings.site_logo_alt,
     about: settings.footer_tagline || settings.site_tagline || "Tijaar is the #1 multi-seller marketplace connecting buyers and sellers. Shop with confidence from verified sellers Pakistan.",
     contact: {
       address: settings.contact_address || "Pakistan",
@@ -100,24 +97,13 @@ export default function Footer() {
         <div className="py-8 sm:py-12 lg:py-14 grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-x-4 gap-y-6 sm:gap-8 lg:gap-8">
           {/* About & Contact */}
           <div className="col-span-2 lg:col-span-2">
-            {data.logo && (
-              <Link href="/" className="site-logo-wrap site-logo-wrap--footer inline-block mb-3 sm:mb-5">
-                <img
-                  src={optimizeImageUrl(data.logo, { width: IMAGE_WIDTHS.siteLogo })}
-                  alt={resolveImageAlt(data.logoAlt, IMAGE_ALT_FALLBACKS.siteLogo)}
-                  width={140}
-                  height={44}
-                  sizes="140px"
-                  loading="lazy"
-                  decoding="async"
-                  onError={(e) => {
-                    if (e.target.src !== "/images/tijaar-logo.png") {
-                      e.target.src = "/images/tijaar-logo.png";
-                    }
-                  }}
-                />
-              </Link>
-            )}
+            <Link
+              href="/"
+              className="inline-block mb-3 sm:mb-5 hover:opacity-90 transition-opacity"
+              aria-label={settings.site_name || "Tijaar home"}
+            >
+              <TijaarBrandLogo height={44} />
+            </Link>
             {data.about && (
               <p className="text-gray-400 text-xs sm:text-sm leading-relaxed max-w-sm mb-4 sm:mb-6">{data.about}</p>
             )}
