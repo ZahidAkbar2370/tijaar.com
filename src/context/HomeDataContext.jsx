@@ -31,6 +31,8 @@ function mapHomeResponse(res) {
     featured_categories: res.featured_categories ?? [],
     browse_categories: res.browse_categories ?? [],
     featured_products: res.featured_products ?? [],
+    hot_sale_products: res.hot_sale_products ?? [],
+    featured_shops: res.featured_shops ?? [],
     best_seller_products: res.best_seller_products ?? [],
     all_products: res.all_products ?? [],
     recent_products: res.recent_products ?? [],

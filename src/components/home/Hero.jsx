@@ -100,38 +100,34 @@ export default function Hero() {
               {heroConfig?.subtitle || "Tijaar is Pakistan's multi-seller marketplace. Shop from verified sellers with secure payments, buyer protection, and fast courier delivery or become a verified seller and reach buyers nationwide."}
             </p>
 
-            <div className="hidden sm:flex flex-wrap gap-4 mb-6">
-              {(heroConfig?.feature1_title || heroConfig?.feature2_title || heroConfig?.feature3_title || !heroConfig) && (
-                <>
-                  <div className="flex items-center gap-3 px-4 py-3 bg-white/80 backdrop-blur-sm rounded-xl border border-gray-100 shadow-sm">
-                    <div className="w-10 h-10 rounded-lg bg-emerald-100 flex items-center justify-center">
-                      <span className="text-lg">✓</span>
-                    </div>
-                    <div>
-                      <p className="font-semibold text-gray-900">{heroConfig?.feature1_title || "Secure Payments"}</p>
-                      <p className="text-xs text-gray-500">{heroConfig?.feature1_subtitle || "JazzCash, Bank Card, Easypaisa"}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3 px-4 py-3 bg-white/80 backdrop-blur-sm rounded-xl border border-gray-100 shadow-sm">
-                    <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center">
-                      <Store className="w-5 h-5 text-[#1790d7]" />
-                    </div>
-                    <div>
-                      <p className="font-semibold text-gray-900">{heroConfig?.feature2_title || "Verified Sellers"}</p>
-                      <p className="text-xs text-gray-500">{heroConfig?.feature2_subtitle || "KYC, Email, Phone,"}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3 px-4 py-3 bg-white/80 backdrop-blur-sm rounded-xl border border-gray-100 shadow-sm">
-                    <div className="w-10 h-10 rounded-lg bg-amber-100 flex items-center justify-center">
-                      <span className="text-lg">🚚</span>
-                    </div>
-                    <div>
-                      <p className="font-semibold text-gray-900">{heroConfig?.feature3_title || "Fast Shipping"}</p>
-                      <p className="text-xs text-gray-500">{heroConfig?.feature3_subtitle || "TCS, Leopards, PostEx"}</p>
-                    </div>
-                  </div>
-                </>
-              )}
+            <div className="flex flex-wrap gap-2 sm:gap-4 mb-4 sm:mb-6">
+              <div className="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 sm:py-3 bg-white/80 backdrop-blur-sm rounded-xl border border-gray-100 shadow-sm">
+                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-emerald-100 flex items-center justify-center shrink-0">
+                  <span className="text-base sm:text-lg">✓</span>
+                </div>
+                <div>
+                  <p className="font-semibold text-gray-900 text-sm sm:text-base">{heroConfig?.feature1_title || "Secure Payments"}</p>
+                  <p className="text-[11px] sm:text-xs text-gray-500">{heroConfig?.feature1_subtitle || "JazzCash, Bank Card, Easypaisa"}</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 sm:py-3 bg-white/80 backdrop-blur-sm rounded-xl border border-gray-100 shadow-sm">
+                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-blue-100 flex items-center justify-center shrink-0">
+                  <Store className="w-4 h-4 sm:w-5 sm:h-5 text-[#1790d7]" />
+                </div>
+                <div>
+                  <p className="font-semibold text-gray-900 text-sm sm:text-base">{heroConfig?.feature2_title || "Verified Sellers"}</p>
+                  <p className="text-[11px] sm:text-xs text-gray-500">{heroConfig?.feature2_subtitle || "KYC, Email, Phone,"}</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 sm:py-3 bg-white/80 backdrop-blur-sm rounded-xl border border-gray-100 shadow-sm">
+                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-amber-100 flex items-center justify-center shrink-0">
+                  <span className="text-base sm:text-lg">🚚</span>
+                </div>
+                <div>
+                  <p className="font-semibold text-gray-900 text-sm sm:text-base">{heroConfig?.feature3_title || "Fast Shipping"}</p>
+                  <p className="text-[11px] sm:text-xs text-gray-500">{heroConfig?.feature3_subtitle || "TCS, Leopards, PostEx"}</p>
+                </div>
+              </div>
             </div>
 
             <div className="flex flex-wrap items-center gap-2 sm:gap-4 mb-3 sm:mb-4">

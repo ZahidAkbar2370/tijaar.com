@@ -5,6 +5,7 @@ import { Star, ChevronLeft, ChevronRight } from "lucide-react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Autoplay, Navigation } from "swiper/modules";
 import ProductCard, { ProductCardSkeletonRow } from "@/components/public/ProductCard";
+import { PRODUCT_CARD_SWIPER_BREAKPOINTS, PRODUCT_CARD_SWIPER_DEFAULT } from "@/lib/productCardSwiper";
 import { useHomeData } from "@/context/HomeDataContext";
 
 export default function FeaturedListings() {
@@ -42,16 +43,10 @@ export default function FeaturedListings() {
 
       <Swiper
         modules={[Autoplay, Navigation]}
-        spaceBetween={24}
-        slidesPerView={1}
+        {...PRODUCT_CARD_SWIPER_DEFAULT}
         autoplay={{ delay: 4000 }}
         navigation={{ prevEl: ".featured-prev", nextEl: ".featured-next" }}
-        breakpoints={{
-          480: { slidesPerView: 2 },
-          640: { slidesPerView: 3 },
-          768: { slidesPerView: 4 },
-          1024: { slidesPerView: 4 },
-        }}
+        breakpoints={PRODUCT_CARD_SWIPER_BREAKPOINTS}
         className="featured-swiper product-card-swiper"
       >
         {bestSellers.map((product) => (

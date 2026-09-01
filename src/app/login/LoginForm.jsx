@@ -18,6 +18,8 @@ const features = [
   { icon: Store, text: "List items and manage orders easily" },
 ];
 
+import { postLoginPath, safeRedirectPath } from "@/lib/authRedirect";
+
 function readQueryParam(key) {
   if (typeof window === "undefined") return null;
   try {
@@ -54,17 +56,7 @@ export default function LoginForm() {
 
   useEffect(() => {
     if (loading || !user) return;
-    const role = user?.role || "customer";
-    if (role === "seller") {
-      router.replace("/seller/dashboard");
-      return;
-    }
-    const ps = user?.private_seller_verification;
-    if (user?.is_private_seller && ps?.required && !ps?.complete) {
-      router.replace("/customer/verification");
-      return;
-    }
-    router.replace("/customer/dashboard");
+    router.replace(postLoginPath(user, safeRedirectPath(readQueryParam("redirect"))));
   }, [user, loading, router]);
 
   const handleGoogleLogin = async () => {
@@ -99,17 +91,7 @@ export default function LoginForm() {
         remember_me: rememberMe,
         ...(showRecaptcha ? { recaptcha_token: recaptchaToken } : {}),
       });
-      const role = data?.user?.role || "customer";
-      if (role === "seller") {
-        router.push("/seller/dashboard");
-      } else {
-        const ps = data?.user?.private_seller_verification;
-        if (data?.user?.is_private_seller && ps?.required && !ps?.complete) {
-          router.push("/customer/verification");
-        } else {
-          router.push("/customer/dashboard");
-        }
-      }
+      router.push(postLoginPath(data?.user, safeRedirectPath(readQueryParam("redirect"))));
     } catch (err) {
       if (showRecaptcha) {
         setRecaptchaToken("");

@@ -7,6 +7,7 @@ import { CartProvider } from "@/context/CartContext";
 import { WishlistProvider } from "@/context/WishlistContext";
 import { MarketProvider } from "@/context/MarketContext";
 import { SiteSettingsProvider } from "@/context/SiteSettingsContext";
+import { LoginRequiredProvider } from "@/context/LoginRequiredContext";
 import ClientSeoHead from "@/components/common/ClientSeoHead";
 import TypographyStyles from "@/components/common/TypographyStyles";
 
@@ -16,14 +17,16 @@ export function Providers({ children }) {
       <SiteSettingsProvider>
         <MarketProvider>
           <AuthProvider>
-            <CartProvider>
-              <WishlistProvider>
-                <TypographyStyles />
-                <ClientSeoHead />
-                {children}
-                <FcmLoader />
-              </WishlistProvider>
-            </CartProvider>
+            <LoginRequiredProvider>
+              <CartProvider>
+                <WishlistProvider>
+                  <TypographyStyles />
+                  <ClientSeoHead />
+                  {children}
+                  <FcmLoader />
+                </WishlistProvider>
+              </CartProvider>
+            </LoginRequiredProvider>
           </AuthProvider>
         </MarketProvider>
       </SiteSettingsProvider>

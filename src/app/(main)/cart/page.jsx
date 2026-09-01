@@ -18,6 +18,7 @@ import {
 import { useCart } from "@/context/CartContext";
 import { useMarket } from "@/context/MarketContext";
 import useAuth from "@/hooks/useAuth";
+import useRequireLogin from "@/hooks/useRequireLogin";
 import { resolveImageAlt, IMAGE_ALT_FALLBACKS } from "@/lib/imageAlt";
 import { optimizeImageUrl, IMAGE_WIDTHS } from "@/lib/imageOptimize";
 import { useSeoH1 } from "@/hooks/useSeoH1";
@@ -52,6 +53,7 @@ export default function CartPage() {
   const { formatPrice } = useMarket();
   const { user, logout } = useAuth();
   const router = useRouter();
+  const requireLogin = useRequireLogin();
   const isSeller = user?.role === "seller";
   const { totalShipping, groupsWithShipping } = useCartShipping(cartItems);
 
@@ -418,7 +420,18 @@ export default function CartPage() {
                 ) : (
                   <button
                     type="button"
-                    onClick={() => router.push("/checkout")}
+                    onClick={() => {
+                      if (
+                        !requireLogin({
+                          redirectTo: "/checkout",
+                          title: "Login to checkout",
+                          message: "Please log in to continue to checkout and place your order.",
+                        })
+                      ) {
+                        return;
+                      }
+                      router.push("/checkout");
+                    }}
                     className="flex items-center justify-center gap-2 w-full py-4 bg-gradient-to-r from-[#1790d7] to-[#4db3e8] text-white rounded-xl font-semibold hover:shadow-lg transition-all"
                   >
                     Proceed to checkout

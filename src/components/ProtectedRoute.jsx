@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import useAuth from "@/hooks/useAuth";
 import { getToken } from "@/lib/api";
 import { useSiteSettings } from "@/context/SiteSettingsContext";
+import { useLoginRequired } from "@/context/LoginRequiredContext";
 import { DashboardPageSkeleton } from "@/components/common/PageSkeleton";
 
 function isEmailVerified(user) {
@@ -24,9 +25,11 @@ function isSellingPath(pathname) {
 export default function ProtectedRoute({ children, requiredRole = null }) {
   const { isAuthenticated, loading, user, refresh } = useAuth();
   const { email_verification_required: emailVerificationRequired } = useSiteSettings();
+  const { openLoginRequired } = useLoginRequired();
   const router = useRouter();
   const pathname = usePathname();
   const [restoringSession, setRestoringSession] = useState(false);
+  const [guestPrompted, setGuestPrompted] = useState(false);
 
   useEffect(() => {
     if (loading || restoringSession) return;
@@ -35,12 +38,28 @@ export default function ProtectedRoute({ children, requiredRole = null }) {
         setRestoringSession(true);
         refresh()
           .then((restoredUser) => {
-            if (!restoredUser) router.replace("/login");
+            if (!restoredUser && !guestPrompted) {
+              setGuestPrompted(true);
+              openLoginRequired({
+                redirectTo: pathname || "/customer/dashboard",
+                title: "Login required",
+                message: "Please log in to access this page.",
+              });
+              router.replace("/");
+            }
           })
           .finally(() => setRestoringSession(false));
         return;
       }
-      router.replace("/login");
+      if (!guestPrompted) {
+        setGuestPrompted(true);
+        openLoginRequired({
+          redirectTo: pathname || "/customer/dashboard",
+          title: "Login required",
+          message: "Please log in to access this page.",
+        });
+        router.replace("/");
+      }
       return;
     }
 
@@ -78,6 +97,8 @@ export default function ProtectedRoute({ children, requiredRole = null }) {
     refresh,
     emailVerificationRequired,
     pathname,
+    openLoginRequired,
+    guestPrompted,
   ]);
 
   if (loading || restoringSession) return <DashboardPageSkeleton />;

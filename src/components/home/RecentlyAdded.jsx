@@ -7,6 +7,7 @@ import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation, Autoplay } from "swiper/modules";
 import { productApi } from "@/lib/api";
 import ProductCard, { ProductCardSkeletonRow } from "@/components/public/ProductCard";
+import { PRODUCT_CARD_SWIPER_BREAKPOINTS } from "@/lib/productCardSwiper";
 
 export default function RecentlyAdded() {
   const [recent, setRecent] = useState([]);
@@ -49,15 +50,11 @@ export default function RecentlyAdded() {
       {inView && !loading && recent?.length > 0 && (
       <Swiper
         modules={[Navigation, Autoplay]}
-        spaceBetween={20}
+        spaceBetween={12}
         slidesPerView={2}
         navigation={{ prevEl: ".recent-prev", nextEl: ".recent-next" }}
         autoplay={{ delay: 3500 }}
-        breakpoints={{
-          640: { slidesPerView: 3 },
-          768: { slidesPerView: 4 },
-          1024: { slidesPerView: 5 },
-        }}
+        breakpoints={PRODUCT_CARD_SWIPER_BREAKPOINTS}
         className="recent-swiper product-card-swiper"
       >
         {recent.map((item) => (

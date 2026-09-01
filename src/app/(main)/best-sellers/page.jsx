@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Home, Star, ChevronLeft, ChevronRight } from "lucide-react";
 import { productApi } from "@/lib/api";
 import ProductCard, { ProductCardSkeletonRow } from "@/components/public/ProductCard";
+import { PRODUCT_CARD_GRID_CLASS } from "@/lib/productCardSwiper";
 import { useSeoH1 } from "@/hooks/useSeoH1";
 
 const PER_PAGE = 24;
@@ -77,7 +78,7 @@ export default function BestSellersPage() {
           </div>
         ) : (
           <>
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-5">
+            <div className={PRODUCT_CARD_GRID_CLASS}>
               {products.map((product) => (
                 <ProductCard key={product.id} product={product} showAddToCart />
               ))}

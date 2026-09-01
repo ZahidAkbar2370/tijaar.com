@@ -11,6 +11,7 @@ import { useMarket } from "@/context/MarketContext";
 import { resolveImageAlt, IMAGE_ALT_FALLBACKS } from "@/lib/imageAlt";
 import { groupCartBySeller, shippingModeLabel } from "@/lib/cartGroups";
 import { useCartShipping } from "@/hooks/useCartShipping";
+import useRequireLogin from "@/hooks/useRequireLogin";
 
 export default function CartSidebar() {
   const [mounted, setMounted] = useState(false);
@@ -29,6 +30,7 @@ export default function CartSidebar() {
   } = useCart();
   const { formatPrice } = useMarket();
   const router = useRouter();
+  const requireLogin = useRequireLogin();
   const hasFlashDealInCart = cartItems.some((i) => i.flash_deal_id != null);
   const { groupsWithShipping, totalShipping } = useCartShipping(isCartOpen ? cartItems : []);
   const sellerGroups = groupsWithShipping.length ? groupsWithShipping : groupCartBySeller(cartItems);
@@ -39,6 +41,15 @@ export default function CartSidebar() {
   };
 
   const handleCheckout = () => {
+    if (
+      !requireLogin({
+        redirectTo: "/checkout",
+        title: "Login to checkout",
+        message: "Please log in to continue to checkout and place your order.",
+      })
+    ) {
+      return;
+    }
     setIsCartOpen(false);
     router.push("/checkout");
   };

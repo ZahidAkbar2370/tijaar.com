@@ -1,7 +1,6 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { Zap } from "lucide-react";
 import { HomeDataProvider } from "@/context/HomeDataContext";
 import Hero from "@/components/home/Hero";
 import CategoryProductsSection from "@/components/home/CategoryProductsSection";
@@ -48,13 +47,12 @@ export default function HomePageClient({ initialHomeData = null, heroBackground 
         <PromotionProductsSection
           dataKey="featured_products"
           title="Featured Products"
-          subtitle="Paid featured listings — diamond badge on promoted items"
+          subtitle="Paid featured listings with an active promotion package"
         />
         <PromotionProductsSection
           dataKey="hot_sale_products"
           title="Hot Sale / Flash Deals"
-          subtitle="Paid hot packages — Hot Deal label on promoted items"
-          icon={Zap}
+          subtitle="Paid hot packages with an active promotion — shown in random order"
         />
         {BrandsSlider ? <BrandsSlider /> : null}
         <CategoryProductsSection />

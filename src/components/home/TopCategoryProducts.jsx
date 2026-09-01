@@ -8,6 +8,7 @@ import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation } from "swiper/modules";
 import { productApi } from "@/lib/api";
 import ProductCard, { ProductCardSkeletonRow } from "@/components/public/ProductCard";
+import { PRODUCT_CARD_SWIPER_BREAKPOINTS } from "@/lib/productCardSwiper";
 
 export default function TopCategoryProducts({ categoryName, categorySlug }) {
   const slug = categorySlug || categoryName?.toLowerCase().replace(/\s+/g, "-");
@@ -60,16 +61,10 @@ export default function TopCategoryProducts({ categoryName, categorySlug }) {
       {inView && !loading && categoryProducts.length > 0 && (
       <Swiper
         modules={[Navigation]}
-        spaceBetween={16}
+        spaceBetween={12}
         slidesPerView={1}
         navigation={{ prevEl: `.${prevClass}`, nextEl: `.${nextClass}` }}
-        breakpoints={{
-          480: { slidesPerView: 1 },
-          640: { slidesPerView: 2 },
-          768: { slidesPerView: 3 },
-          1024: { slidesPerView: 4 },
-          1280: { slidesPerView: 4 },
-        }}
+        breakpoints={PRODUCT_CARD_SWIPER_BREAKPOINTS}
         className="product-swiper product-card-swiper"
       >
         {categoryProducts.slice(0, 8).map((product) => (

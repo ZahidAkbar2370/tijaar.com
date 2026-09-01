@@ -5,6 +5,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Autoplay, Navigation } from "swiper/modules";
 import ProductCard, { ProductCardSkeletonRow } from "@/components/public/ProductCard";
+import { PRODUCT_CARD_SWIPER_BREAKPOINTS, PRODUCT_CARD_SWIPER_DEFAULT } from "@/lib/productCardSwiper";
 import { useHomeData } from "@/context/HomeDataContext";
 
 export default function RecentProductsSection() {
@@ -56,20 +57,14 @@ export default function RecentProductsSection() {
 
       <Swiper
         modules={[Autoplay, Navigation]}
-        spaceBetween={20}
-        slidesPerView={1}
+        {...PRODUCT_CARD_SWIPER_DEFAULT}
         autoplay={{
           delay: 2500,
           disableOnInteraction: false,
         }}
         navigation={{ prevEl: ".recent-products-prev", nextEl: ".recent-products-next" }}
         loop={products.length >= 4}
-        breakpoints={{
-          480: { slidesPerView: 2 },
-          640: { slidesPerView: 3 },
-          768: { slidesPerView: 4 },
-          1024: { slidesPerView: 4 },
-        }}
+        breakpoints={PRODUCT_CARD_SWIPER_BREAKPOINTS}
         className="recent-products-swiper product-card-swiper"
       >
         {products.map((product) => (

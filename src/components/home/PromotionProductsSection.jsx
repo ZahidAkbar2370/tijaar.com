@@ -1,20 +1,49 @@
 "use client";
 
 import Link from "next/link";
+import { useCallback, useRef } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Autoplay, Navigation } from "swiper/modules";
 import ProductCard, { ProductCardSkeletonRow } from "@/components/public/ProductCard";
+import { PRODUCT_CARD_SWIPER_BREAKPOINTS, PRODUCT_CARD_SWIPER_DEFAULT } from "@/lib/productCardSwiper";
 import { useHomeData } from "@/context/HomeDataContext";
+import { trackProductEvent } from "@/lib/productAnalytics";
+
+function trackProductsImpression(products, indices = []) {
+  if (!products?.length || !indices.length) return;
+  indices.forEach((idx) => {
+    const product = products[idx];
+    if (product?.id) trackProductEvent(product.id, "impression");
+  });
+}
+
+function visibleSlideIndices(swiper) {
+  if (!swiper) return [];
+  const spv = Math.max(1, Math.round(Number(swiper.params?.slidesPerView) || 1));
+  const indices = [];
+  for (let i = 0; i < spv; i += 1) {
+    const idx = swiper.activeIndex + i;
+    if (idx >= 0 && idx < swiper.slides.length) indices.push(idx);
+  }
+  return indices;
+}
 
 export default function PromotionProductsSection({
   dataKey,
   title,
   subtitle,
   viewAllHref = "/shop",
-  icon: Icon = null,
 }) {
   const { [dataKey]: products, loading } = useHomeData();
+  const swiperRef = useRef(null);
+
+  const trackVisible = useCallback(
+    (swiper) => {
+      trackProductsImpression(products, visibleSlideIndices(swiper));
+    },
+    [products]
+  );
 
   if (loading) {
     return (
@@ -33,7 +62,6 @@ export default function PromotionProductsSection({
       <div className="flex items-center justify-between gap-2 sm:gap-4 mb-3 sm:mb-4">
         <div className="min-w-0">
           <h2 className="text-base sm:text-2xl md:text-3xl font-bold text-gray-800 flex items-center gap-1.5 sm:gap-2">
-            {Icon ? <Icon className="w-5 h-5 sm:w-8 sm:h-8 text-amber-500 shrink-0" /> : null}
             <span className="truncate">{title}</span>
           </h2>
           {subtitle ? (
@@ -54,21 +82,21 @@ export default function PromotionProductsSection({
       </div>
       <Swiper
         modules={[Autoplay, Navigation]}
-        spaceBetween={24}
-        slidesPerView={1}
+        {...PRODUCT_CARD_SWIPER_DEFAULT}
         autoplay={{ delay: 4500 }}
         navigation={{ prevEl: `.${navPrev}`, nextEl: `.${navNext}` }}
-        breakpoints={{
-          480: { slidesPerView: 2 },
-          640: { slidesPerView: 3 },
-          1024: { slidesPerView: 4 },
+        onSwiper={(swiper) => {
+          swiperRef.current = swiper;
+          trackVisible(swiper);
         }}
+        onSlideChangeTransitionEnd={(swiper) => trackVisible(swiper)}
+        breakpoints={PRODUCT_CARD_SWIPER_BREAKPOINTS}
         className="product-card-swiper"
       >
         {products.map((product) => (
           <SwiperSlide key={product.id} className="!h-auto">
             <div className="h-full w-full">
-              <ProductCard product={product} showAddToCart />
+              <ProductCard product={product} showAddToCart trackImpression={false} />
             </div>
           </SwiperSlide>
         ))}

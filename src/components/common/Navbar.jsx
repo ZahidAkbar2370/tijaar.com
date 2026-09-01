@@ -21,6 +21,7 @@ import {
   History,
 } from "lucide-react";
 import useAuth from "@/hooks/useAuth";
+import useRequireLogin from "@/hooks/useRequireLogin";
 import { useCart } from "@/context/CartContext";
 import { useWishlist } from "@/context/WishlistContext";
 import { useSiteSettings } from "@/context/SiteSettingsContext";
@@ -38,6 +39,7 @@ export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const router = useRouter();
   const { isAuthenticated, user, logout } = useAuth();
+  const requireLogin = useRequireLogin();
   const { getCartCount, setIsCartOpen } = useCart();
   const { wishlistItems } = useWishlist();
   const { site_logo_url, site_name, site_logo_alt } = useSiteSettings();
@@ -57,11 +59,31 @@ export default function Navbar() {
     }
   };
 
+  const openAccountGate = (redirectTo, message) => {
+    requireLogin({
+      redirectTo,
+      title: "Login required",
+      message: message || "Please log in to access your account.",
+    });
+  };
+
+  const handleWishlistNav = (e) => {
+    if (isAuthenticated) return;
+    e.preventDefault();
+    openAccountGate("/customer/wishlist", "Please log in to view your wishlist.");
+  };
+
+  const handleProfileNav = (e) => {
+    if (isAuthenticated) return;
+    e.preventDefault();
+    openAccountGate("/customer/profile", "Please log in to view your profile.");
+  };
+
   const profilePath = isAuthenticated
     ? user?.role === "seller"
       ? "/seller/profile"
       : "/customer/profile"
-    : "/login";
+    : "/customer/profile";
 
   return (
     <header className="bg-white/95 backdrop-blur-md border-b border-gray-100 shadow-sm sticky top-0 z-40">
@@ -131,8 +153,9 @@ export default function Navbar() {
                 ? user?.role === "customer"
                   ? "/customer/wishlist"
                   : "/seller/dashboard"
-                : "/login"
+                : "/customer/wishlist"
             }
+            onClick={handleWishlistNav}
             className="relative flex flex-col items-center justify-center gap-0.5 px-3 py-2 hover:bg-gray-50 rounded-lg transition-all duration-200 text-gray-600 hover:text-[#1790d7] min-w-[52px]"
           >
             <HeartIcon strokeWidth={1.5} size={26} />
@@ -250,7 +273,10 @@ export default function Navbar() {
             href={profilePath}
             className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
             aria-label={isAuthenticated ? "Profile" : "Login"}
-            onClick={() => setIsOpen(false)}
+            onClick={(e) => {
+              setIsOpen(false);
+              handleProfileNav(e);
+            }}
           >
             {isAuthenticated && user?.avatar_url ? (
               <span className="block w-8 h-8 rounded-full overflow-hidden border border-gray-200 shadow-sm">
@@ -311,9 +337,12 @@ export default function Navbar() {
                       ? user?.role === "customer"
                         ? "/customer/dashboard?tab=wishlist"
                         : "/seller/dashboard"
-                      : "/login"
+                      : "/customer/wishlist"
                   }
-                  onClick={() => setIsOpen(false)}
+                  onClick={(e) => {
+                    setIsOpen(false);
+                    handleWishlistNav(e);
+                  }}
                   className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-gray-200 text-gray-700 font-medium hover:bg-gray-50 transition-colors relative"
                 >
                   <HeartIcon size={18} />

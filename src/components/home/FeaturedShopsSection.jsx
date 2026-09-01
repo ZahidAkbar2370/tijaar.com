@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Store, ChevronLeft, ChevronRight, BadgeCheck } from "lucide-react";
+import { ChevronLeft, ChevronRight, BadgeCheck } from "lucide-react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation } from "swiper/modules";
 import { useHomeData } from "@/context/HomeDataContext";
@@ -16,8 +16,7 @@ export default function FeaturedShopsSection() {
     <div className="py-6 px-4 lg:px-16 bg-white border-b border-gray-100">
       <div className="flex items-center justify-between gap-2 sm:gap-4 mb-3 sm:mb-4">
         <div className="min-w-0">
-          <h2 className="text-base sm:text-2xl md:text-3xl font-bold text-gray-800 flex items-center gap-1.5 sm:gap-2">
-            <Store className="w-5 h-5 sm:w-8 sm:h-8 text-[#1790d7] shrink-0" />
+          <h2 className="text-base sm:text-2xl md:text-3xl font-bold text-gray-800">
             <span className="truncate">Featured Verified Sellers</span>
           </h2>
           <p className="text-gray-500 mt-0.5 sm:mt-2 text-xs sm:text-base hidden sm:block">

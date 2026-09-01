@@ -1,6 +1,7 @@
 "use client";
 
 import ProductCard from "@/components/public/ProductCard";
+import { PRODUCT_CARD_GRID_CLASS } from "@/lib/productCardSwiper";
 
 export default function ProductGrid({ products }) {
   if (!products.length) {
@@ -8,7 +9,7 @@ export default function ProductGrid({ products }) {
   }
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-5 items-stretch">
+    <div className={PRODUCT_CARD_GRID_CLASS}>
       {products.map((p) => (
         <ProductCard key={p.id} product={p} showAddToCart />
       ))}

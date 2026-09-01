@@ -11,6 +11,7 @@ import { useMarket } from "@/context/MarketContext";
 import useAuth from "@/hooks/useAuth";
 import { useSiteSettings } from "@/context/SiteSettingsContext";
 import { useSeoH1 } from "@/hooks/useSeoH1";
+import useRequireLogin from "@/hooks/useRequireLogin";
 import { addressApi, orderApi, cartApi, couponApi, paymentApi, walletApi } from "@/lib/api";
 import { useCartShipping } from "@/hooks/useCartShipping";
 import LocationFields from "@/components/forms/LocationFields";
@@ -40,11 +41,13 @@ export default function CheckoutContent() {
   const cartHasFlashDeal = hasFlashDealInCart?.() ?? cartItems.some((i) => i.flash_deal_id != null);
   const { formatPrice } = useMarket();
   const { showSuccess, showError } = useSnackbar();
-  const { user, login, register, logout } = useAuth();
+  const { user, login, register, logout, loading: authLoading } = useAuth();
   const { payment_methods: paymentOptions } = useSiteSettings();
   const paymentMethods = Array.isArray(paymentOptions) && paymentOptions.length > 0 ? paymentOptions : FALLBACK_PAYMENT_OPTIONS;
   const router = useRouter();
+  const requireLogin = useRequireLogin();
   const checkoutH1 = useSeoH1("checkout");
+  const [guestGateChecked, setGuestGateChecked] = useState(false);
   const [addresses, setAddresses] = useState([]);
   const [selectedAddressId, setSelectedAddressId] = useState("");
   const [paymentMethod, setPaymentMethod] = useState(() => (paymentMethods[0]?.value ?? "cod"));
@@ -77,6 +80,21 @@ export default function CheckoutContent() {
   const [createAccount, setCreateAccount] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  useEffect(() => {
+    if (authLoading || guestGateChecked) return;
+    if (!user) {
+      setGuestGateChecked(true);
+      requireLogin({
+        redirectTo: "/checkout",
+        title: "Login to checkout",
+        message: "Please log in to continue to checkout and place your order.",
+      });
+      router.replace("/cart");
+    } else {
+      setGuestGateChecked(true);
+    }
+  }, [authLoading, user, guestGateChecked, requireLogin, router]);
 
   useEffect(() => {
     const inList = paymentMethods.some((o) => o.value === paymentMethod);
@@ -384,6 +402,17 @@ export default function CheckoutContent() {
         !guestForm.phone?.trim() ||
         !guestForm.address_line_1?.trim() ||
         !guestForm.city?.trim()));
+
+  if (authLoading || !user) {
+    return (
+      <div className="w-full px-4 sm:px-6 lg:px-12 xl:px-16 py-12">
+        <div className="animate-pulse space-y-4 max-w-xl">
+          <div className="h-8 bg-gray-200 rounded w-1/3" />
+          <div className="h-32 bg-gray-100 rounded" />
+        </div>
+      </div>
+    );
+  }
 
   if (loading) {
     return (

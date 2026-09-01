@@ -16,24 +16,25 @@ import {
   MessageSquare,
   Check,
   Store,
-  BadgeCheck,
   FileText,
   RotateCcw,
   Play,
   FileDown,
-  CheckCircle2,
   ExternalLink,
   Share2,
+  Mail,
+  Phone,
 } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import ProductReviews from "@/components/reviews/ProductReviews";
-import ProductPromoBadges from "@/components/promotion/ProductPromoBadges";
 import ProductCard from "@/components/public/ProductCard";
+import { PRODUCT_CARD_GRID_CLASS } from "@/lib/productCardSwiper";
 import { productApi } from "@/lib/api";
 import { useWishlist } from "@/context/WishlistContext";
 import { useSnackbar } from "@/context/SnackbarContext";
 import { useMarket } from "@/context/MarketContext";
 import useAuth from "@/hooks/useAuth";
+import useRequireLogin from "@/hooks/useRequireLogin";
 import { resolveMediaUrl, resolveMediaUrls } from "@/lib/media";
 import { resolveImageAlt, IMAGE_ALT_FALLBACKS } from "@/lib/imageAlt";
 import { trackProductEvent } from "@/lib/productAnalytics";
@@ -77,6 +78,29 @@ function getProductShippingCopy(product) {
   };
 }
 
+const CONDITION_BADGES = {
+  new: { label: "New", className: "bg-emerald-50 text-emerald-800 border-emerald-200" },
+  used: { label: "Used", className: "bg-amber-50 text-amber-900 border-amber-200" },
+  refurbished: { label: "Refurbished", className: "bg-sky-50 text-sky-900 border-sky-200" },
+};
+
+function MetaBadge({ label, className = "" }) {
+  return (
+    <span className={`inline-flex items-center text-[11px] sm:text-xs font-semibold px-2.5 py-1 rounded-full border ${className}`}>
+      {label}
+    </span>
+  );
+}
+
+function VerificationPill({ icon: Icon, label, className }) {
+  return (
+    <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] sm:text-xs font-semibold border ${className}`}>
+      <Icon className="w-3.5 h-3.5 shrink-0" />
+      {label}
+    </span>
+  );
+}
+
 function BulletList({ text }) {
   if (!text || !String(text).trim()) return null;
   const parts = String(text)
@@ -106,7 +130,7 @@ export default function ProductDetail({ product }) {
   useEffect(() => {
     if (!product?.id) return;
     productApi
-      .promotedAds({ exclude_id: product.id, limit: 4 })
+      .promotedAds({ exclude_id: product.id, limit: 6 })
       .then((res) => setPromotedAds(res.products || []))
       .catch(() => setPromotedAds([]));
   }, [product?.id]);
@@ -115,6 +139,7 @@ export default function ProductDetail({ product }) {
   const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
   const { showSuccess, showError } = useSnackbar();
   const { user } = useAuth();
+  const requireLogin = useRequireLogin();
   const isWishlisted = isInWishlist(product?.id);
   const isOwnListing = !!(
     product?.seller_id &&
@@ -162,12 +187,16 @@ export default function ProductDetail({ product }) {
     : null;
   const badges = useMemo(() => {
     const b = [];
-    if (product?.is_new_arrival) b.push({ id: "new", label: "New Arrival", className: "bg-violet-500 text-white" });
-    if (product?.is_featured) b.push({ id: "featured", label: "Featured", className: "bg-amber-500 text-white" });
-    if (product?.is_hot) b.push({ id: "hot", label: "Hot Deal", className: "bg-rose-500 text-white" });
-    if (hasFlashDeal) b.push({ id: "flash", label: "Flash Deal", className: "bg-[#1790d7] text-white" });
+    if (product?.is_featured) b.push({ id: "featured", label: "Boosted", className: "bg-amber-500 text-white border-amber-500" });
+    if (product?.is_hot) b.push({ id: "hot", label: "Hot Deal", className: "bg-rose-500 text-white border-rose-500" });
+    if (product?.is_new_arrival) b.push({ id: "new", label: "New Arrival", className: "bg-violet-500 text-white border-violet-500" });
+    if (hasFlashDeal) b.push({ id: "flash", label: "Flash Deal", className: "bg-[#1790d7] text-white border-[#1790d7]" });
     return b;
   }, [product?.is_new_arrival, product?.is_featured, product?.is_hot, hasFlashDeal]);
+
+  const conditionBadge = CONDITION_BADGES[String(product?.condition || "").toLowerCase()] || null;
+  const sellerRating = sellerCard?.product_rating ?? sellerCard?.store_rating;
+  const sellerReviewCount = sellerCard?.product_reviews_count ?? sellerCard?.store_reviews_count ?? 0;
 
   const variants = useMemo(() => {
     const v = product?.variants;
@@ -281,6 +310,15 @@ export default function ProductDetail({ product }) {
   };
 
   const handleBuyNow = async () => {
+    if (
+      !requireLogin({
+        redirectTo: "/checkout",
+        title: "Login to checkout",
+        message: "Please log in to buy this item.",
+      })
+    ) {
+      return;
+    }
     if (!product || !canAddToCart) {
       showError?.(
         hasVariants && !selectedVariant
@@ -444,11 +482,6 @@ export default function ProductDetail({ product }) {
                     className="w-full h-full object-contain p-3 sm:p-4"
                     draggable={false}
                   />
-                  <ProductPromoBadges
-                    isFeatured={!!product.is_featured}
-                    isHot={!!product.is_hot}
-                    className="top-3 left-3"
-                  />
                   {!showInStock && !(hasVariants && !selectedVariant) && (
                     <div className="absolute inset-0 bg-slate-900/45 flex items-center justify-center pointer-events-none">
                       <span className="px-4 py-2 rounded-xl bg-white text-slate-900 text-sm font-bold shadow-lg">
@@ -501,16 +534,17 @@ export default function ProductDetail({ product }) {
 
             {/* Buy box */}
             <div className="lg:col-span-6 xl:col-span-5 p-4 sm:p-6 lg:p-8 flex flex-col">
-              {badges.length > 0 && (
-                <div className="flex flex-wrap gap-2 mb-3">
+              {(badges.length > 0 || conditionBadge) && (
+                <div className="flex flex-wrap gap-2 mb-4">
                   {badges.map((b) => (
-                    <span
-                      key={b.id}
-                      className={`text-[11px] sm:text-xs font-semibold px-2.5 py-1 rounded-lg ${b.className}`}
-                    >
-                      {b.label}
-                    </span>
+                    <MetaBadge key={b.id} label={b.label} className={b.className} />
                   ))}
+                  {conditionBadge && (
+                    <MetaBadge
+                      label={`Condition: ${conditionBadge.label}`}
+                      className={conditionBadge.className}
+                    />
+                  )}
                 </div>
               )}
 
@@ -518,7 +552,7 @@ export default function ProductDetail({ product }) {
                 {productH1}
               </h1>
 
-              <div className="flex items-center gap-2 mb-4 flex-wrap">
+              <div className="flex items-center gap-2 mb-5 flex-wrap pb-5 border-b border-slate-100">
                 <div className="flex items-center gap-0.5" aria-label={`Rated ${Number(product.rating) || 0} out of 5`}>
                   {[1, 2, 3, 4, 5].map((i) => {
                     const avg = Number(product.rating) || 0;
@@ -526,11 +560,15 @@ export default function ProductDetail({ product }) {
                     return (
                       <Star
                         key={i}
-                        className={`w-4 h-4 ${filled ? "text-amber-400 fill-amber-400" : "text-slate-200"}`}
+                        className={`w-4 h-4 sm:w-[18px] sm:h-[18px] ${filled ? "text-amber-400 fill-amber-400" : "text-slate-200"}`}
                       />
                     );
                   })}
                 </div>
+                <span className="text-sm font-semibold text-slate-800 tabular-nums">
+                  {(Number(product.rating) || 0).toFixed(1)}
+                </span>
+                <span className="text-slate-300">·</span>
                 <a
                   href="#reviews"
                   onClick={() => setActiveTab("reviews")}
@@ -769,7 +807,7 @@ export default function ProductDetail({ product }) {
               </div>
 
               {sellerCard ? (
-                <div className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-5 mb-5 shadow-sm">
+                <div className="rounded-2xl border border-slate-200 bg-gradient-to-br from-slate-50/70 to-white p-4 sm:p-5 mb-5 shadow-sm">
                   <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-400 mb-3">
                     Sold by
                   </p>
@@ -794,54 +832,80 @@ export default function ProductDetail({ product }) {
                       )}
                     </Link>
                     <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-1.5 min-w-0">
-                        <Link
-                          href={`/seller/${sellerCard.vendor_slug}`}
-                          className="font-bold text-slate-900 hover:text-[#1790d7] transition-colors truncate text-base"
-                        >
-                          {sellerCard.vendor}
-                        </Link>
-                        {sellerCard.kyc_verified && (
-                          <span
-                            className="inline-flex items-center text-[#1790d7] shrink-0"
-                            title="Verified seller"
-                            aria-label="Verified seller"
-                          >
-                            <BadgeCheck className="w-[18px] h-[18px]" />
-                          </span>
-                        )}
-                      </div>
+                      <Link
+                        href={`/seller/${sellerCard.vendor_slug}`}
+                        className="font-bold text-slate-900 hover:text-[#1790d7] transition-colors text-base sm:text-lg leading-snug block"
+                      >
+                        {sellerCard.vendor}
+                      </Link>
 
-                      <div className="grid grid-cols-3 gap-2 mt-3">
-                        <div className="rounded-xl bg-slate-50 border border-slate-100 px-2 py-2 text-center">
-                          <p className="text-sm font-bold text-slate-900 tabular-nums leading-none">
+                      {(sellerCard.kyc_verified ||
+                        sellerCard.email_verified ||
+                        sellerCard.phone_verified ||
+                        (sellerCard.is_store !== false && sellerCard.store_verified)) && (
+                        <div className="flex flex-wrap gap-1.5 mt-2.5">
+                          {sellerCard.kyc_verified && (
+                            <VerificationPill
+                              icon={ShieldCheck}
+                              label="KYC Verified"
+                              className="bg-emerald-50 text-emerald-700 border-emerald-200"
+                            />
+                          )}
+                          {sellerCard.email_verified && (
+                            <VerificationPill
+                              icon={Mail}
+                              label="Email Verified"
+                              className="bg-violet-50 text-violet-700 border-violet-200"
+                            />
+                          )}
+                          {sellerCard.phone_verified && (
+                            <VerificationPill
+                              icon={Phone}
+                              label="Phone Verified"
+                              className="bg-sky-50 text-sky-700 border-sky-200"
+                            />
+                          )}
+                          {sellerCard.is_store !== false && sellerCard.store_verified && (
+                            <VerificationPill
+                              icon={Store}
+                              label="Store Verified"
+                              className="bg-blue-50 text-blue-700 border-blue-200"
+                            />
+                          )}
+                        </div>
+                      )}
+
+                      <div className="grid grid-cols-3 gap-2 mt-4">
+                        <div className="rounded-xl bg-white border border-slate-100 px-2 py-2.5 text-center">
+                          <p className="text-base font-bold text-slate-900 tabular-nums leading-none">
                             {sellerCard.total_products ?? 0}
                           </p>
-                          <p className="text-[10px] text-slate-500 mt-1 font-medium">Products</p>
+                          <p className="text-[10px] text-slate-500 mt-1.5 font-medium uppercase tracking-wide">
+                            Products
+                          </p>
                         </div>
-                        <div className="rounded-xl bg-slate-50 border border-slate-100 px-2 py-2 text-center">
-                          <p className="text-sm font-bold text-slate-900 tabular-nums leading-none inline-flex items-center justify-center gap-0.5">
-                            {sellerCard.store_rating != null ? (
+                        <div className="rounded-xl bg-white border border-slate-100 px-2 py-2.5 text-center">
+                          <p className="text-base font-bold text-slate-900 tabular-nums leading-none">
+                            {Number(sellerCard.completed_orders ?? 0).toLocaleString("en-PK")}
+                          </p>
+                          <p className="text-[10px] text-slate-500 mt-1.5 font-medium uppercase tracking-wide">
+                            Orders
+                          </p>
+                        </div>
+                        <div className="rounded-xl bg-white border border-slate-100 px-2 py-2.5 text-center">
+                          <p className="text-base font-bold text-slate-900 tabular-nums leading-none inline-flex items-center justify-center gap-0.5">
+                            {sellerRating != null ? (
                               <>
-                                <Star className="w-3 h-3 text-amber-400 fill-amber-400" />
-                                {sellerCard.store_rating}
+                                <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
+                                {sellerRating}
                               </>
                             ) : (
                               "—"
                             )}
                           </p>
-                          <p className="text-[10px] text-slate-500 mt-1 font-medium">
-                            {sellerCard.store_reviews_count
-                              ? `${sellerCard.store_reviews_count} reviews`
-                              : "Rating"}
+                          <p className="text-[10px] text-slate-500 mt-1.5 font-medium uppercase tracking-wide">
+                            {sellerReviewCount > 0 ? `${sellerReviewCount} reviews` : "Rating"}
                           </p>
-                        </div>
-                        <div className="rounded-xl bg-slate-50 border border-slate-100 px-2 py-2 text-center">
-                          <p className="text-sm font-bold text-slate-900 tabular-nums leading-none inline-flex items-center justify-center gap-0.5">
-                            <CheckCircle2 className="w-3 h-3 text-emerald-500" />
-                            {Number(sellerCard.completed_orders ?? 0).toLocaleString("en-PK")}
-                          </p>
-                          <p className="text-[10px] text-slate-500 mt-1 font-medium">Orders</p>
                         </div>
                       </div>
 
@@ -1125,18 +1189,18 @@ export default function ProductDetail({ product }) {
             )}
           </div>
         </div>
-      </div>
 
-      {promotedAds.length > 0 && (
-        <section className="mt-10 border-t border-slate-200 pt-8">
-          <h2 className="text-lg font-bold text-slate-900 mb-4">Promoted for you</h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
-            {promotedAds.map((p) => (
-              <ProductCard key={p.id} product={p} compact />
-            ))}
-          </div>
-        </section>
-      )}
+        {promotedAds.length > 0 && (
+          <section className="mt-8 sm:mt-10 pt-8 border-t border-slate-200">
+            <h2 className="text-base sm:text-2xl font-bold text-gray-800 mb-3 sm:mb-4">Promoted for you</h2>
+            <div className={PRODUCT_CARD_GRID_CLASS}>
+              {promotedAds.map((p) => (
+                <ProductCard key={p.id} product={p} showAddToCart trackImpression={false} />
+              ))}
+            </div>
+          </section>
+        )}
+      </div>
 
       {/* Mobile sticky CTA */}
       {!isOwnListing && (

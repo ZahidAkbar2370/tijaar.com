@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import StoreReviews from "@/components/reviews/StoreReviews";
 import ProductCard from "@/components/public/ProductCard";
+import { PRODUCT_CARD_GRID_CLASS } from "@/lib/productCardSwiper";
 import SellerAvatar from "@/components/vendors/SellerAvatar";
 import RatingStars from "@/components/ui/RatingStars";
 import { resolveImageAlt, IMAGE_ALT_FALLBACKS } from "@/lib/imageAlt";
@@ -307,7 +308,7 @@ export default function VendorDetail({ vendor, products }) {
                 <p className="text-gray-500">No products found</p>
               </div>
             ) : (
-              <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 lg:gap-5 items-stretch">
+              <div className={PRODUCT_CARD_GRID_CLASS}>
                 {displayProducts.map((p) => (
                   <ProductCard key={p.id} product={p} showAddToCart showBuyNow={false} hideStoreInfo />
                 ))}

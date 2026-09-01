@@ -190,9 +190,19 @@ button {
   display: flex;
   height: auto;
 }
+@media (max-width: 767px) {
+  .product-card-swiper {
+    overflow: visible;
+  }
+  .product-card-swiper .swiper-wrapper {
+    align-items: flex-start;
+  }
+}
 .product-card-swiper .swiper-slide > div {
   width: 100%;
-  min-height: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
 /* Premium skeleton shimmer */

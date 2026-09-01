@@ -6,12 +6,20 @@
 export const TCS_TRACKING_URL = "https://www.tcsexpress.com/track";
 export const LEOPARDS_TRACKING_URL = "https://www.leopardscourier.com/tracking";
 export const POSTEX_TRACKING_URL = "https://postex.pk/tracking";
+export const DEX_TRACKING_URL = "https://www.daraz.pk/";
+export const DAEWOO_FASTEX_TRACKING_URL = "https://daewoofastex.pk/";
+export const MNP_TRACKING_URL = "https://mulphilog.com.pk/track-shipment.php";
+export const BALOCH_CARGO_TRACKING_URL = "https://balochtransport.com/";
 
 export function normalizeCourierValue(value) {
   const v = String(value || "").toLowerCase().trim();
   if (["lcs", "leopard", "leopard_courier", "leopards_courier"].includes(v)) return "leopards";
   if (v === "tcs_courier") return "tcs";
   if (["post_ex", "post-ex"].includes(v)) return "postex";
+  if (["dex_courier", "pk_dex", "daraz_express"].includes(v)) return "dex";
+  if (["daewoo", "daewoo_express", "fastex"].includes(v)) return "daewoo_fastex";
+  if (["mp", "m_p", "m&p", "mulphilog", "mp_courier"].includes(v)) return "mnp";
+  if (["baloch", "baloch_transport", "balochcargo"].includes(v)) return "baloch_cargo";
   return v;
 }
 
@@ -20,6 +28,10 @@ export function courierLabel(value) {
   if (v === "tcs") return "TCS";
   if (v === "leopards") return "Leopard / LCS";
   if (v === "postex") return "PostEx";
+  if (v === "dex") return "Dex";
+  if (v === "daewoo_fastex") return "Daewoo FastEx";
+  if (v === "mnp") return "M&P";
+  if (v === "baloch_cargo") return "Baloch Cargo";
   return value || "Courier";
 }
 
@@ -28,6 +40,10 @@ export function getShipmentCarrier(shipment) {
   if (carrier === "tcs") return "tcs";
   if (carrier === "leopards" || shipment?.lcs_cn_number) return "leopards";
   if (carrier === "postex") return "postex";
+  if (carrier === "dex") return "dex";
+  if (carrier === "daewoo_fastex") return "daewoo_fastex";
+  if (carrier === "mnp") return "mnp";
+  if (carrier === "baloch_cargo") return "baloch_cargo";
   return carrier || "";
 }
 
@@ -55,6 +71,22 @@ export function getCourierTrackingUrl(shipment) {
   if (carrier === "postex") {
     if (cn) return `${POSTEX_TRACKING_URL}?cn=${encodeURIComponent(cn)}`;
     return POSTEX_TRACKING_URL;
+  }
+  if (carrier === "dex") {
+    if (cn) return `${DEX_TRACKING_URL}?tracking=${encodeURIComponent(cn)}`;
+    return DEX_TRACKING_URL;
+  }
+  if (carrier === "daewoo_fastex") {
+    if (cn) return `${DAEWOO_FASTEX_TRACKING_URL}?consignment=${encodeURIComponent(cn)}`;
+    return DAEWOO_FASTEX_TRACKING_URL;
+  }
+  if (carrier === "mnp") {
+    if (cn) return `${MNP_TRACKING_URL}?cn=${encodeURIComponent(cn)}`;
+    return MNP_TRACKING_URL;
+  }
+  if (carrier === "baloch_cargo") {
+    if (cn) return `${BALOCH_CARGO_TRACKING_URL}?tracking=${encodeURIComponent(cn)}`;
+    return BALOCH_CARGO_TRACKING_URL;
   }
   if (cn) {
     return `https://merchantapi.leopardscourier.com/api/trackBookedPacket/format/json/?track_numbers=${encodeURIComponent(cn)}`;

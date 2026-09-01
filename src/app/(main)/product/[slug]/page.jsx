@@ -1,4 +1,5 @@
 import dynamic from "next/dynamic";
+import ProductNotFound from "@/components/public/ProductNotFound";
 import {
   buildPageMetadata,
   fetchApi,
@@ -61,14 +62,7 @@ export default async function ProductPage({ params }) {
   const product = await fetchProductFromApi(slug);
 
   if (!product) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-800 mb-2">Product not found</h2>
-          <a href="/" className="text-[#1790d7] hover:underline">Go home</a>
-        </div>
-      </div>
-    );
+    return <ProductNotFound slug={slug} />;
   }
 
   return <ProductDetail product={product} />;

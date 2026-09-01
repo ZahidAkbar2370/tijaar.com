@@ -3,13 +3,13 @@
 import PromotionDiamond from "@/components/promotion/PromotionDiamond";
 import HotDealBadge from "@/components/promotion/HotDealBadge";
 
-/** Featured diamond, Hot Deal label, and optional discount — stacked top-left on product imagery. */
+/** Boosted label, Hot Deal label, and optional discount — stacked top-left on product imagery. */
 export default function ProductPromoBadges({
   isFeatured = false,
   isHot = false,
   discountLabel = null,
-  discountClassName = "px-2 py-0.5 bg-red-600 text-white rounded-md text-[10px] font-bold shadow-sm",
-  className = "absolute top-2 left-2 z-10",
+  discountClassName = "px-1.5 py-0.5 bg-red-600 text-white rounded text-[9px] font-bold shadow-sm",
+  className = "absolute top-1.5 left-1.5 z-10",
 }) {
   if (!isFeatured && !isHot && !discountLabel) return null;
 

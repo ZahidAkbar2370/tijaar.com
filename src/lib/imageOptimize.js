@@ -1,4 +1,5 @@
 import { getBackendBaseUrl } from "@/lib/api";
+import { resolveMediaUrl } from "@/lib/media";
 
 /** Display-size presets matched to rendered CSS sizes (≈1.25× for crispness). */
 export const IMAGE_WIDTHS = {
@@ -11,6 +12,8 @@ export const IMAGE_WIDTHS = {
   heroBanner: 1680,
   vendorLogo: 40,
 };
+
+export const FALLBACK_PRODUCT_IMAGE = "/assets/sample-image.webp";
 
 export const LOCAL_LOGO_WEBP = "/images/tijaar-logo.webp";
 export const LOCAL_LOGO_PNG = "/images/tijaar-logo.png";
@@ -55,6 +58,74 @@ export function extractBackendMediaPath(url) {
   return null;
 }
 
+/** Read `path` query param from an existing media delivery URL. */
+export function extractDeliveryPathFromUrl(url) {
+  if (!url || typeof url !== "string" || !url.includes("/api/v1/media/delivery")) return null;
+  try {
+    const base = getBackendBaseUrl();
+    const parsed = new URL(url.trim(), `${base}/`);
+    const path = parsed.searchParams.get("path");
+    return path ? path.replace(/^\/+/, "") : null;
+  } catch {
+    return null;
+  }
+}
+
+function buildDeliveryUrl(mediaPath, { width, quality, format }) {
+  const base = getBackendBaseUrl();
+  const params = new URLSearchParams({
+    path: mediaPath.replace(/^\/+/, ""),
+    w: String(width),
+    q: String(quality),
+    fmt: format,
+  });
+  return `${base}/api/v1/media/delivery?${params.toString()}`;
+}
+
+/** Resolve upload/storage path from assorted API image fields. */
+export function resolveProductImageRaw(product) {
+  if (!product) return null;
+  return (
+    product.image ||
+    product.thumbnail_url ||
+    product.thumbnail_path ||
+    product.thumbnail ||
+    null
+  );
+}
+
+/** Primary optimized URL + direct-file fallback for product cards. */
+export function resolveProductImageSources(
+  product,
+  { width = IMAGE_WIDTHS.productCard, quality = 72, format = "webp" } = {}
+) {
+  const raw = resolveProductImageRaw(product);
+  if (!raw) {
+    return { primary: FALLBACK_PRODUCT_IMAGE, fallback: FALLBACK_PRODUCT_IMAGE };
+  }
+
+  const primary = optimizeImageUrl(raw, { width, quality, format }) || FALLBACK_PRODUCT_IMAGE;
+  const mediaPath =
+    extractDeliveryPathFromUrl(raw) ||
+    extractBackendMediaPath(raw) ||
+    extractBackendMediaPath(resolveMediaUrl(raw));
+
+  let fallback = FALLBACK_PRODUCT_IMAGE;
+  if (mediaPath) {
+    fallback = resolveMediaUrl(mediaPath) || FALLBACK_PRODUCT_IMAGE;
+  } else if (raw.startsWith("http")) {
+    fallback = raw;
+  } else {
+    fallback = resolveMediaUrl(raw) || FALLBACK_PRODUCT_IMAGE;
+  }
+
+  if (fallback === primary) {
+    fallback = FALLBACK_PRODUCT_IMAGE;
+  }
+
+  return { primary, fallback };
+}
+
 /**
  * Build an optimized delivery URL for backend-hosted images.
  * Local static assets (/images/..., /assets/...) are returned unchanged.
@@ -65,8 +136,9 @@ export function optimizeImageUrl(url, { width = 800, quality = 82, format = "web
   const value = url.trim();
   if (!value) return url;
 
-  if (value.includes("/api/v1/media/delivery")) {
-    return value;
+  const deliveryPath = extractDeliveryPathFromUrl(value);
+  if (deliveryPath) {
+    return buildDeliveryUrl(deliveryPath, { width, quality, format });
   }
 
   if (value.startsWith("/") && !value.startsWith("//")) {
@@ -80,18 +152,17 @@ export function optimizeImageUrl(url, { width = 800, quality = 82, format = "web
     return value;
   }
 
-  const mediaPath = extractBackendMediaPath(value);
+  let mediaPath = extractBackendMediaPath(value);
   if (!mediaPath) {
-    return value;
+    mediaPath = extractBackendMediaPath(resolveMediaUrl(value));
+  }
+  if (!mediaPath && !value.startsWith("http")) {
+    const normalized = value.replace(/^\/+/, "");
+    mediaPath = extractBackendMediaPath(`storage/${normalized}`);
+  }
+  if (!mediaPath) {
+    return resolveMediaUrl(value) || value;
   }
 
-  const base = getBackendBaseUrl();
-  const params = new URLSearchParams({
-    path: mediaPath,
-    w: String(width),
-    q: String(quality),
-    fmt: format,
-  });
-
-  return `${base}/api/v1/media/delivery?${params.toString()}`;
+  return buildDeliveryUrl(mediaPath, { width, quality, format });
 }

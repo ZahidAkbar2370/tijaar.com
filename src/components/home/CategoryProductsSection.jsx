@@ -5,6 +5,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation } from "swiper/modules";
 import ProductCard from "@/components/public/ProductCard";
+import { PRODUCT_CARD_SWIPER_BREAKPOINTS, PRODUCT_CARD_SWIPER_DEFAULT } from "@/lib/productCardSwiper";
 import { useHomeData } from "@/context/HomeDataContext";
 
 export default function CategoryProductsSection() {
@@ -55,15 +56,9 @@ export default function CategoryProductsSection() {
             </div>
             <Swiper
               modules={[Navigation]}
-              spaceBetween={20}
-              slidesPerView={1}
+              {...PRODUCT_CARD_SWIPER_DEFAULT}
               navigation={{ prevEl: `.${prevClass}`, nextEl: `.${nextClass}` }}
-              breakpoints={{
-                480: { slidesPerView: 2 },
-                640: { slidesPerView: 3 },
-                768: { slidesPerView: 4 },
-                1024: { slidesPerView: 4 },
-              }}
+              breakpoints={PRODUCT_CARD_SWIPER_BREAKPOINTS}
               className="product-card-swiper"
             >
               {products.map((product) => (

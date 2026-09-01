@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import { productApi, categoryApi } from "@/lib/api";
 import ProductCard, { ProductCardSkeletonRow } from "@/components/public/ProductCard";
+import { PRODUCT_CARD_GRID_CLASS } from "@/lib/productCardSwiper";
 import { useSeoH1 } from "@/hooks/useSeoH1";
 
 const sortOptions = [
@@ -690,14 +691,13 @@ export default function Shop() {
             ) : (
               <>
                 <div className={viewMode === "grid"
-                  ? "grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-5 items-stretch"
+                  ? PRODUCT_CARD_GRID_CLASS
                   : "grid grid-cols-1 gap-3 items-stretch"
                 }>
                   {products.map((product) => (
                     <ProductCard
                       key={product.id}
                       product={product}
-                      showAddToCart
                       shopMobileCompact
                       layout={viewMode === "list" ? "list" : "grid"}
                     />

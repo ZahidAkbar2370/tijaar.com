@@ -1,10 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { LayoutGrid, ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation } from "swiper/modules";
 import ProductCard, { ProductCardSkeletonRow } from "@/components/public/ProductCard";
+import { PRODUCT_CARD_SWIPER_BREAKPOINTS, PRODUCT_CARD_SWIPER_DEFAULT } from "@/lib/productCardSwiper";
 import { useHomeData } from "@/context/HomeDataContext";
 
 export default function AllProductsSection() {
@@ -24,8 +25,7 @@ export default function AllProductsSection() {
     <div className="py-8 px-4 lg:px-16 bg-white border-t border-gray-100">
       <div className="flex items-center justify-between gap-2 sm:gap-4 mb-4 sm:mb-6">
         <div className="min-w-0">
-          <h2 className="text-base sm:text-2xl md:text-3xl font-bold text-gray-800 flex items-center gap-1.5 sm:gap-2">
-            <LayoutGrid className="w-5 h-5 sm:w-8 sm:h-8 text-[#1790d7] shrink-0" />
+          <h2 className="text-base sm:text-2xl md:text-3xl font-bold text-gray-800">
             <span className="truncate">All Products</span>
           </h2>
           <p className="text-gray-500 mt-0.5 sm:mt-1 text-xs sm:text-base hidden sm:block">Browse all products from our categories</p>
@@ -57,15 +57,9 @@ export default function AllProductsSection() {
 
       <Swiper
         modules={[Navigation]}
-        spaceBetween={20}
-        slidesPerView={1}
+        {...PRODUCT_CARD_SWIPER_DEFAULT}
         navigation={{ prevEl: ".all-products-prev", nextEl: ".all-products-next" }}
-        breakpoints={{
-          480: { slidesPerView: 2 },
-          640: { slidesPerView: 3 },
-          768: { slidesPerView: 4 },
-          1024: { slidesPerView: 4 },
-        }}
+        breakpoints={PRODUCT_CARD_SWIPER_BREAKPOINTS}
         className="all-products-swiper product-card-swiper"
       >
         {products.map((product) => (

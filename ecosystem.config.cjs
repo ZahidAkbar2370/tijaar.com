@@ -4,7 +4,7 @@ module.exports = {
     {
       name: "tijaar-frontend",
       cwd: __dirname,
-      script: ".next/standalone/server.js",
+      script: "server.js",
       interpreter: "node",
       env: {
         NODE_ENV: "production",

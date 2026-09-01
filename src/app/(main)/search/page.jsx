@@ -6,6 +6,7 @@ import Link from "next/link";
 import { Search, SlidersHorizontal } from "lucide-react";
 import { productApi } from "@/lib/api";
 import ProductCard, { ProductCardSkeletonRow } from "@/components/public/ProductCard";
+import { PRODUCT_CARD_GRID_CLASS } from "@/lib/productCardSwiper";
 import { useSeoH1 } from "@/hooks/useSeoH1";
 
 function SearchResultsContent() {
@@ -103,7 +104,7 @@ function SearchResultsContent() {
           </Link>
         </div>
       ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 lg:gap-5 items-stretch">
+        <div className={PRODUCT_CARD_GRID_CLASS}>
           {products.map((p) => (
             <ProductCard key={p.id} product={p} showAddToCart />
           ))}
