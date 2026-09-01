@@ -1,10 +1,8 @@
 "use client";
 
 import { useState, useMemo, useEffect, useRef, useCallback } from "react";
-import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Home,
   SlidersHorizontal,
   X,
   Grid3X3,
@@ -19,7 +17,6 @@ import {
   DollarSign,
   Check,
   RotateCcw,
-  Sparkles,
   Store,
 } from "lucide-react";
 import { productApi, categoryApi } from "@/lib/api";
@@ -118,8 +115,7 @@ function StarRating({ rating, selected, onClick }) {
           />
         ))}
       </div>
-      <span className="text-sm font-medium text-gray-700">& Up</span>
-      {selected && <Check className="w-4 h-4 text-amber-500 ml-auto" />}
+      {selected && <Check className="w-4 h-4 text-amber-500 ml-auto shrink-0" />}
     </button>
   );
 }
@@ -273,7 +269,7 @@ export default function Shop() {
     if (selectedCondition) params.condition = selectedCondition;
     if (selectedSellerType) params.seller_type = selectedSellerType;
     if (selectedStock) params.availability = selectedStock;
-    if (selectedRating) params.min_rating = selectedRating;
+    if (selectedRating) params.rating = selectedRating;
     return params;
   }, [debouncedSearch, debouncedPriceRange, selectedCategory, selectedCondition, selectedSellerType, selectedStock, selectedRating, sortBy]);
 
@@ -364,7 +360,11 @@ export default function Shop() {
       filters.push({ key: "stock", label: stock?.label || selectedStock, onRemove: () => setSelectedStock("") });
     }
     if (selectedRating) {
-      filters.push({ key: "rating", label: `${selectedRating}+ Stars`, onRemove: () => setSelectedRating(null) });
+      filters.push({
+        key: "rating",
+        label: selectedRating === 1 ? "1 Star" : `${selectedRating} Stars`,
+        onRemove: () => setSelectedRating(null),
+      });
     }
     return filters;
   }, [selectedCategory, debouncedPriceRange, selectedCondition, selectedSellerType, selectedStock, selectedRating, categories]);
@@ -510,43 +510,15 @@ export default function Shop() {
   );
 
   return (
-    <div className="bg-gray-50 min-h-screen">
-      {/* Breadcrumb */}
-      <div className="bg-white border-b border-gray-100">
-        <div className="w-full px-5 py-3">
-          <div className="flex items-center gap-2 text-sm text-gray-500">
-            <Link href="/" className="hover:text-[#1790d7] flex items-center gap-1">
-              <Home className="w-4 h-4" />
-              <span className="hidden sm:inline">Home</span>
-            </Link>
-            <ChevronDown className="w-4 h-4 rotate-[-90deg]" />
-            <span className="text-gray-900 font-medium">Shop</span>
-          </div>
-        </div>
-      </div>
+    <div className="min-h-screen bg-gray-50/90">
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-5 sm:py-8">
+        <h1 className="sr-only">{shopH1}</h1>
 
-      {/* Hero Banner */}
-      <div className="bg-gradient-to-r from-[#1790d7] to-[#4db3e8] py-10 lg:py-14">
-        <div className="w-full px-5">
-          <div className="flex items-center justify-center gap-3 mb-3">
-            <Sparkles className="w-6 h-6 text-white/80" />
-            <h1 className="text-3xl lg:text-4xl font-bold text-white text-center">
-              {shopH1}
-            </h1>
-            <Sparkles className="w-6 h-6 text-white/80" />
-          </div>
-          <p className="text-white/80 text-lg text-center max-w-2xl mx-auto">
-            Discover {totalProducts > 0 ? `${totalProducts.toLocaleString()}+` : "thousands of"} products from verified vendors
-          </p>
-        </div>
-      </div>
-
-      <div className="w-full px-5 py-6">
-        <div className="flex flex-col lg:flex-row gap-6">
+        <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
           {/* Desktop Sidebar Filters */}
-          <aside className="hidden lg:block w-72 shrink-0">
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-              <div className="p-5 border-b border-gray-100 bg-gradient-to-r from-gray-50 to-white">
+          <aside className="hidden lg:block w-64 xl:w-72 shrink-0">
+            <div className="sticky top-24 bg-white rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.05)] border border-gray-100 overflow-hidden">
+              <div className="p-5 border-b border-gray-100 bg-gradient-to-r from-[#1790d7]/5 to-transparent">
                 <div className="flex items-center justify-between">
                   <h3 className="font-bold text-gray-900 flex items-center gap-2">
                     <SlidersHorizontal className="w-5 h-5 text-[#1790d7]" />
@@ -572,68 +544,102 @@ export default function Shop() {
           {/* Main Content */}
           <main className="flex-1 min-w-0">
             {/* Toolbar */}
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 mb-6">
-              <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+            <div className="bg-white rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.05)] border border-gray-100 p-4 sm:p-5 mb-5">
+              <div className="flex flex-col gap-4">
                 {/* Search */}
-                <div className="relative flex-1">
-                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <div className="relative w-full">
+                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
                   <input
-                    type="text"
-                    placeholder="Search products..."
+                    type="search"
+                    placeholder="Search by product name, category, or keyword…"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full pl-12 pr-4 py-3 bg-gray-50 border-2 border-transparent rounded-xl text-sm focus:bg-white focus:border-[#1790d7] focus:outline-none transition-all"
+                    className="w-full pl-12 pr-4 py-3 bg-white border border-gray-200 rounded-xl text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#1790d7] focus:ring-2 focus:ring-[#1790d7]/15 focus:outline-none transition-all"
                   />
                 </div>
 
-                {/* Actions */}
-                <div className="flex items-center gap-3">
-                  {/* Mobile Filter Button */}
-                  <button
-                    onClick={() => setShowFilters(true)}
-                    className="lg:hidden flex items-center gap-2 px-4 py-3 bg-gray-50 hover:bg-gray-100 rounded-xl text-sm font-medium transition-colors"
-                  >
-                    <SlidersHorizontal className="w-4 h-4" />
-                    Filters
-                    {activeFilters.length > 0 && (
-                      <span className="w-5 h-5 bg-[#1790d7] text-white text-xs rounded-full flex items-center justify-center">
-                        {activeFilters.length}
-                      </span>
+                {/* Sort, filters, view */}
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pt-1 border-t border-gray-100 sm:border-0 sm:pt-0">
+                  <p className="text-sm text-gray-500 sm:hidden">
+                    {loading ? "Loading…" : (
+                      <>
+                        Showing <span className="font-semibold text-gray-800">{products.length}</span>
+                        {totalProducts > products.length && (
+                          <> of <span className="font-semibold text-gray-800">{totalProducts.toLocaleString()}</span></>
+                        )} results
+                      </>
                     )}
-                  </button>
+                  </p>
 
-                  {/* Sort */}
-                  <div className="relative">
-                    <select
-                      value={sortBy}
-                      onChange={(e) => setSortBy(e.target.value)}
-                      className="appearance-none px-4 py-3 pr-10 bg-gray-50 hover:bg-gray-100 rounded-xl text-sm font-medium cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#1790d7]/20 transition-all"
+                  <div className="flex flex-wrap items-center gap-2 sm:gap-3 sm:ml-auto">
+                    {/* Mobile Filter Button */}
+                    <button
+                      type="button"
+                      onClick={() => setShowFilters(true)}
+                      className="lg:hidden inline-flex items-center gap-2 px-4 py-2.5 border border-gray-200 bg-white hover:bg-gray-50 rounded-xl text-sm font-medium text-gray-700 transition-colors"
                     >
-                      {sortOptions.map((opt) => (
-                        <option key={opt.value} value={opt.value}>{opt.label}</option>
-                      ))}
-                    </select>
-                    <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 pointer-events-none" />
-                  </div>
+                      <SlidersHorizontal className="w-4 h-4 text-[#1790d7]" />
+                      Filters
+                      {activeFilters.length > 0 && (
+                        <span className="min-w-[1.25rem] h-5 px-1.5 bg-[#1790d7] text-white text-xs rounded-full flex items-center justify-center">
+                          {activeFilters.length}
+                        </span>
+                      )}
+                    </button>
 
-                  {/* View Mode */}
-                  <div className="hidden sm:flex items-center bg-gray-50 rounded-xl p-1">
-                    <button
-                      onClick={() => setViewMode("grid")}
-                      className={`p-2.5 rounded-lg transition-all ${
-                        viewMode === "grid" ? "bg-white shadow text-[#1790d7]" : "text-gray-500 hover:text-gray-700"
-                      }`}
+                    {/* Sort */}
+                    <div className="flex items-center gap-2 flex-1 sm:flex-none min-w-0">
+                      <label htmlFor="shop-sort" className="hidden md:inline text-sm font-medium text-gray-600 shrink-0">
+                        Sort by
+                      </label>
+                      <div className="relative flex-1 sm:flex-none sm:min-w-[190px]">
+                        <select
+                          id="shop-sort"
+                          value={sortBy}
+                          onChange={(e) => setSortBy(e.target.value)}
+                          className="w-full appearance-none pl-4 pr-10 py-2.5 bg-white border border-gray-200 hover:border-gray-300 rounded-xl text-sm font-medium text-gray-800 cursor-pointer focus:outline-none focus:border-[#1790d7] focus:ring-2 focus:ring-[#1790d7]/15 transition-all"
+                        >
+                          {sortOptions.map((opt) => (
+                            <option key={opt.value} value={opt.value}>{opt.label}</option>
+                          ))}
+                        </select>
+                        <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 pointer-events-none" />
+                      </div>
+                    </div>
+
+                    {/* View Mode */}
+                    <div
+                      className="hidden sm:flex items-center rounded-xl border border-gray-200 bg-gray-50 p-1 shrink-0"
+                      role="group"
+                      aria-label="Product view"
                     >
-                      <Grid3X3 className="w-4 h-4" />
-                    </button>
-                    <button
-                      onClick={() => setViewMode("list")}
-                      className={`p-2.5 rounded-lg transition-all ${
-                        viewMode === "list" ? "bg-white shadow text-[#1790d7]" : "text-gray-500 hover:text-gray-700"
-                      }`}
-                    >
-                      <LayoutList className="w-4 h-4" />
-                    </button>
+                      <button
+                        type="button"
+                        onClick={() => setViewMode("grid")}
+                        aria-pressed={viewMode === "grid"}
+                        aria-label="Grid view"
+                        className={`p-2 rounded-lg transition-all ${
+                          viewMode === "grid"
+                            ? "bg-white shadow-sm text-[#1790d7]"
+                            : "text-gray-500 hover:text-gray-700"
+                        }`}
+                      >
+                        <Grid3X3 className="w-4 h-4" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setViewMode("list")}
+                        aria-pressed={viewMode === "list"}
+                        aria-label="List view"
+                        className={`p-2 rounded-lg transition-all ${
+                          viewMode === "list"
+                            ? "bg-white shadow-sm text-[#1790d7]"
+                            : "text-gray-500 hover:text-gray-700"
+                        }`}
+                      >
+                        <LayoutList className="w-4 h-4" />
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -663,13 +669,20 @@ export default function Shop() {
               </AnimatePresence>
             </div>
 
-            {/* Results Count */}
-            <div className="flex items-center justify-between mb-4">
-              <p className="text-gray-600 text-sm">
-                Showing <span className="font-semibold text-gray-900">{products.length}</span>
-                {totalProducts > products.length && (
-                  <> of <span className="font-semibold text-gray-900">{totalProducts.toLocaleString()}</span></>
-                )} products
+            {/* Results count — desktop */}
+            <div className="hidden sm:flex items-center justify-between mb-4 px-1">
+              <p className="text-sm text-gray-600">
+                {loading ? (
+                  "Loading products…"
+                ) : (
+                  <>
+                    Showing <span className="font-semibold text-gray-900">{products.length}</span>
+                    {totalProducts > products.length && (
+                      <> of <span className="font-semibold text-gray-900">{totalProducts.toLocaleString()}</span></>
+                    )}{" "}
+                    {products.length === 1 ? "product" : "products"}
+                  </>
+                )}
               </p>
             </div>
 
@@ -692,7 +705,7 @@ export default function Shop() {
               <>
                 <div className={viewMode === "grid"
                   ? PRODUCT_CARD_GRID_CLASS
-                  : "grid grid-cols-1 gap-3 items-stretch"
+                  : "grid grid-cols-1 gap-3 sm:gap-4 items-stretch"
                 }>
                   {products.map((product) => (
                     <ProductCard

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import {
@@ -8,22 +8,34 @@ import {
   ChevronRight,
   Store,
   BadgeCheck,
-  ShieldCheck,
   Package,
   Search,
   Grid3X3,
   List,
+  ChevronDown,
   Clock,
   MessageCircle,
   MapPin,
+  ArrowRight,
 } from "lucide-react";
 import { storesApi } from "@/lib/api";
-import { useSeoH1 } from "@/hooks/useSeoH1";
 import SellerAvatar from "@/components/vendors/SellerAvatar";
 import RatingStars from "@/components/ui/RatingStars";
+import SearchableSelect from "@/components/forms/SearchableSelect";
+
+const sortOptions = [
+  { value: "rating", label: "Highest Rated" },
+  { value: "products", label: "Most Products" },
+  { value: "sales", label: "Most Sales" },
+];
+
+const selectClass =
+  "w-full appearance-none pl-4 pr-10 py-2.5 bg-white border border-gray-200 hover:border-gray-300 rounded-xl text-sm font-medium text-gray-800 cursor-pointer focus:outline-none focus:border-[#1790d7] focus:ring-2 focus:ring-[#1790d7]/15 transition-all";
+
+const SELLER_GRID_CLASS =
+  "grid grid-cols-1 min-[400px]:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4 lg:gap-5";
 
 export default function VendorsContent() {
-  const sellersH1 = useSeoH1("sellers");
   const [searchQuery, setSearchQuery] = useState("");
   const [cityFilter, setCityFilter] = useState("");
   const [cities, setCities] = useState([]);
@@ -57,6 +69,11 @@ export default function VendorsContent() {
     return (b.totalSales || 0) - (a.totalSales || 0);
   });
 
+  const cityOptions = useMemo(
+    () => cities.map((city) => ({ value: city, label: city })),
+    [cities]
+  );
+
   return (
     <div className="bg-gray-50 min-h-screen">
       <div className="bg-white border-b border-gray-100">
@@ -72,89 +89,122 @@ export default function VendorsContent() {
         </div>
       </div>
 
-      <div className="bg-gradient-to-r from-[#1790d7] to-[#4db3e8] py-12 lg:py-16">
-        <div className="w-full px-4 lg:px-8">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
-            <div className="min-w-0 text-left">
-              <h1 className="text-3xl lg:text-4xl font-bold text-white mb-4">{sellersH1}</h1>
-              <p className="text-white/80 text-lg max-w-2xl">
-                Shop from trusted sellers with excellent ratings. Every seller is verified so you can buy with
-                confidence. Want to sell? Join as a seller and reach millions of buyers.
-              </p>
-            </div>
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-5 sm:py-8">
+        <div className="bg-white rounded-xl sm:rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.05)] border border-gray-100 p-3 sm:p-4 lg:p-5 mb-4 sm:mb-6 lg:mb-8">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between pb-4 border-b border-gray-100">
+            <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">Verified Sellers</h1>
             <Link
               href="/seller/register"
-              className="shrink-0 inline-flex items-center justify-center px-6 py-3 rounded-xl bg-white text-[#1790d7] font-semibold text-sm sm:text-base hover:bg-white/90 transition-colors shadow-sm"
+              className="inline-flex w-full sm:w-auto items-center justify-center gap-2 px-4 sm:px-5 py-2.5 sm:py-3 rounded-xl bg-gradient-to-r from-[#1790d7] to-[#4db3e8] text-white text-sm font-semibold hover:shadow-lg hover:opacity-95 transition-all shrink-0"
             >
-              Register Your Store
+              <Store className="w-4 h-4 shrink-0" />
+              <span className="truncate">Register Your Store</span>
+              <ArrowRight className="w-4 h-4 shrink-0 hidden sm:block" />
             </Link>
           </div>
-        </div>
-      </div>
 
-      <div className="w-full px-4 lg:px-8 py-8">
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-8">
-          <div className="relative flex-1 lg:max-w-md">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Search sellers..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm"
-            />
-          </div>
-          <div className="flex flex-col sm:flex-row flex-wrap gap-3">
-            <div className="relative min-w-[160px]">
-              <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
-              <select
-                value={cityFilter}
-                onChange={(e) => setCityFilter(e.target.value)}
-                className="w-full pl-9 pr-8 py-2.5 bg-white border border-gray-200 rounded-xl text-sm appearance-none"
-                aria-label="Filter by city"
-              >
-                <option value="">All cities</option>
-                {cities.map((city) => (
-                  <option key={city} value={city}>
-                    {city}
-                  </option>
-                ))}
-              </select>
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-center pt-4">
+            <div className="relative w-full lg:flex-1 lg:max-w-sm min-w-0">
+              <Search className="absolute left-3.5 sm:left-4 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-gray-400 pointer-events-none" />
+              <input
+                type="search"
+                placeholder="Search sellers…"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-10 sm:pl-12 pr-3 sm:pr-4 py-2.5 bg-gray-50/50 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder:text-gray-400 focus:bg-white focus:border-[#1790d7] focus:ring-2 focus:ring-[#1790d7]/15 focus:outline-none transition-all"
+              />
             </div>
-            <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value)}
-              className="px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm"
-            >
-              <option value="rating">Highest Rated</option>
-              <option value="products">Most Products</option>
-              <option value="sales">Most Sales</option>
-            </select>
-            <div className="hidden sm:flex items-center gap-1 bg-white border border-gray-200 rounded-xl p-1">
-              <button
-                type="button"
-                onClick={() => setViewMode("grid")}
-                className={`p-2 rounded-lg ${viewMode === "grid" ? "bg-[#1790d7] text-white" : "text-gray-500"}`}
+
+            <div className="grid grid-cols-2 sm:flex sm:flex-wrap sm:items-center gap-2 sm:gap-3 lg:shrink-0 lg:ml-auto">
+              <div className="col-span-1 min-w-0">
+                <SearchableSelect
+                  options={cityOptions}
+                  value={cityFilter}
+                  onChange={setCityFilter}
+                  placeholder="All cities"
+                  emptyLabel="No cities found"
+                  className="w-full"
+                />
+              </div>
+
+              <div className="relative col-span-1 min-w-0">
+                <label htmlFor="sellers-sort" className="sr-only">
+                  Sort sellers
+                </label>
+                <select
+                  id="sellers-sort"
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value)}
+                  className={selectClass}
+                >
+                  {sortOptions.map((opt) => (
+                    <option key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 pointer-events-none" />
+              </div>
+
+              <div
+                className="col-span-2 sm:col-span-1 flex items-center justify-end sm:justify-start rounded-xl border border-gray-200 bg-gray-50 p-1 shrink-0"
+                role="group"
+                aria-label="Seller view"
               >
-                <Grid3X3 className="w-4 h-4" />
-              </button>
-              <button
-                type="button"
-                onClick={() => setViewMode("list")}
-                className={`p-2 rounded-lg ${viewMode === "list" ? "bg-[#1790d7] text-white" : "text-gray-500"}`}
-              >
-                <List className="w-4 h-4" />
-              </button>
+                <button
+                  type="button"
+                  onClick={() => setViewMode("grid")}
+                  aria-pressed={viewMode === "grid"}
+                  aria-label="Grid view"
+                  className={`p-2 rounded-lg transition-all ${
+                    viewMode === "grid"
+                      ? "bg-white shadow-sm text-[#1790d7]"
+                      : "text-gray-500 hover:text-gray-700"
+                  }`}
+                >
+                  <Grid3X3 className="w-4 h-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setViewMode("list")}
+                  aria-pressed={viewMode === "list"}
+                  aria-label="List view"
+                  className={`p-2 rounded-lg transition-all ${
+                    viewMode === "list"
+                      ? "bg-white shadow-sm text-[#1790d7]"
+                      : "text-gray-500 hover:text-gray-700"
+                  }`}
+                >
+                  <List className="w-4 h-4" />
+                </button>
+              </div>
             </div>
           </div>
+
+          <p className="text-xs sm:text-sm text-gray-500 mt-4 pt-4 border-t border-gray-100">
+            {loading ? (
+              "Loading sellers…"
+            ) : (
+              <>
+                Showing <span className="font-semibold text-gray-800">{filtered.length}</span>{" "}
+                {filtered.length === 1 ? "seller" : "sellers"}
+                {cityFilter ? (
+                  <>
+                    {" "}
+                    in <span className="font-semibold text-gray-800">{cityFilter}</span>
+                  </>
+                ) : null}
+              </>
+            )}
+          </p>
         </div>
 
         {loading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 animate-pulse">
-            {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
-              <div key={i} className="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100">
-                <div className="h-36 bg-gray-200" />
-                <div className="p-6 space-y-3">
+          <div className={`${SELLER_GRID_CLASS} animate-pulse`}>
+            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((i) => (
+              <div key={i} className="bg-white rounded-xl sm:rounded-2xl overflow-hidden shadow-sm border border-gray-100">
+                <div className="h-24 sm:h-28 lg:h-32 bg-gray-200" />
+                <div className="p-3 sm:p-4 lg:p-5 space-y-2 sm:space-y-3">
                   <div className="h-4 bg-gray-100 rounded w-1/3" />
                   <div className="h-6 bg-gray-200 rounded w-2/3" />
                   <div className="h-4 bg-gray-100 rounded w-full" />
@@ -168,76 +218,77 @@ export default function VendorsContent() {
             <p className="text-gray-500">No vendors found</p>
           </div>
         ) : viewMode === "grid" ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <div className={SELLER_GRID_CLASS}>
             {filtered.map((vendor) => (
               <Link key={vendor.id} href={`/seller/${vendor.slug}`}>
                 <motion.div
-                  whileHover={{ y: -5 }}
-                  className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl border border-gray-100 h-full"
+                  whileHover={{ y: -4 }}
+                  className="bg-white rounded-xl sm:rounded-2xl overflow-hidden shadow-sm hover:shadow-lg border border-gray-100 h-full flex flex-col"
                 >
-                  <div className="h-36 bg-gradient-to-br from-[#1790d7] to-[#4db3e8] relative">
+                  <div className="h-24 sm:h-28 lg:h-32 bg-gradient-to-br from-[#1790d7] to-[#4db3e8] relative shrink-0">
                     {vendor.banner && (
                       <img src={vendor.banner} alt="" className="w-full h-full object-cover" />
                     )}
                     {vendor.kyc_verified && (
-                      <div className="absolute top-3 right-3 flex items-center gap-1 px-2 py-1 bg-white/90 backdrop-blur-sm rounded-full shadow">
-                        <BadgeCheck className="w-4 h-4 text-blue-500" />
-                        <span className="text-xs font-semibold text-blue-600">Verified</span>
+                      <div className="absolute top-2 right-2 sm:top-2.5 sm:right-2.5 flex items-center gap-0.5 px-1.5 py-0.5 sm:px-2 sm:py-1 bg-white/90 backdrop-blur-sm rounded-full shadow">
+                        <BadgeCheck className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-blue-500" />
+                        <span className="text-[10px] sm:text-xs font-semibold text-blue-600 hidden min-[400px]:inline">Verified</span>
                       </div>
                     )}
-                    {vendor.kyc_verified && (
-                      <div className="absolute top-3 left-3 flex items-center gap-1 px-2 py-1 bg-emerald-500 rounded-full shadow">
-                        <ShieldCheck className="w-3.5 h-3.5 text-white" />
-                        <span className="text-xs font-semibold text-white">KYC</span>
-                      </div>
-                    )}
-                    <div className="absolute -bottom-8 left-4 border-4 border-white shadow-lg rounded-xl overflow-hidden">
+                    <div className="absolute -bottom-5 sm:-bottom-6 lg:-bottom-7 left-3 sm:left-4 border-2 sm:border-[3px] border-white shadow-md rounded-lg sm:rounded-xl overflow-hidden">
                       <SellerAvatar
                         src={vendor.logo}
                         alt={vendor.storeName || vendor.name}
-                        className="w-16 h-16"
-                        iconClassName="w-8 h-8"
+                        className="w-11 h-11 sm:w-14 sm:h-14 lg:w-16 lg:h-16"
+                        iconClassName="w-5 h-5 sm:w-7 sm:h-7 lg:w-8 lg:h-8"
                       />
                     </div>
                   </div>
-                  <div className="p-6 pt-10">
-                    <p className="text-xs text-gray-500 mb-1">
+                  <div className="p-3 sm:p-4 lg:p-5 pt-7 sm:pt-8 lg:pt-9 flex-1 flex flex-col min-w-0">
+                    <p className="text-[10px] sm:text-xs text-gray-500 mb-0.5">
                       {vendor.reviews || 0} {(vendor.reviews || 0) === 1 ? "review" : "reviews"}
                     </p>
-                    <h3 className="font-bold text-gray-900 text-lg mb-2 line-clamp-1">
+                    <h3 className="font-bold text-gray-900 text-sm sm:text-base lg:text-lg mb-1.5 sm:mb-2 line-clamp-1">
                       {vendor.storeName || vendor.name}
                     </h3>
-                    <div className="flex items-center gap-3 mb-3">
-                      <RatingStars rating={vendor.rating} size="sm" showValue valueClassName="text-sm font-semibold text-gray-700" />
+                    <div className="flex flex-col min-[400px]:flex-row min-[400px]:items-center gap-1 min-[400px]:gap-2 mb-2 sm:mb-3 min-w-0">
+                      <RatingStars
+                        rating={vendor.rating}
+                        size="sm"
+                        showValue
+                        valueClassName="text-xs sm:text-sm font-semibold text-gray-700"
+                      />
                       {vendor.city && (
-                        <span className="flex items-center gap-1 text-gray-500 text-sm">
-                          <MapPin className="w-3.5 h-3.5" />
-                          {vendor.city}
+                        <span className="flex items-center gap-0.5 text-gray-500 text-xs sm:text-sm truncate">
+                          <MapPin className="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0" />
+                          <span className="truncate">{vendor.city}</span>
                         </span>
                       )}
                     </div>
-                    <p className="text-sm text-gray-600 line-clamp-2 mb-4">{vendor.description}</p>
-                    <div className="grid grid-cols-3 gap-2 text-center border-t border-gray-100 pt-4">
+                    <p className="text-xs sm:text-sm text-gray-600 line-clamp-2 mb-3 sm:mb-4 flex-1 hidden sm:block">
+                      {vendor.description}
+                    </p>
+                    <div className="grid grid-cols-3 gap-1 sm:gap-2 text-center border-t border-gray-100 pt-2.5 sm:pt-3 lg:pt-4 mt-auto">
                       <div>
-                        <div className="flex items-center justify-center gap-1 text-gray-600">
-                          <Package className="w-4 h-4" />
-                          <span className="font-bold">{vendor.products ?? vendor.products_count ?? 0}</span>
+                        <div className="flex items-center justify-center gap-0.5 sm:gap-1 text-gray-600">
+                          <Package className="w-3 h-3 sm:w-3.5 sm:h-3.5 lg:w-4 lg:h-4 shrink-0" />
+                          <span className="font-bold text-xs sm:text-sm">{vendor.products ?? vendor.products_count ?? 0}</span>
                         </div>
-                        <p className="text-xs text-gray-500 mt-0.5">Products</p>
+                        <p className="text-[10px] sm:text-xs text-gray-500 mt-0.5">Products</p>
                       </div>
                       <div>
-                        <div className="flex items-center justify-center gap-1 text-green-600">
-                          <Clock className="w-4 h-4" />
-                          <span className="font-bold">{vendor.on_time_delivery ?? "—"}</span>
+                        <div className="flex items-center justify-center gap-0.5 sm:gap-1 text-green-600">
+                          <Clock className="w-3 h-3 sm:w-3.5 sm:h-3.5 lg:w-4 lg:h-4 shrink-0" />
+                          <span className="font-bold text-xs sm:text-sm truncate max-w-full">{vendor.on_time_delivery ?? "—"}</span>
                         </div>
-                        <p className="text-xs text-gray-500 mt-0.5">On-Time</p>
+                        <p className="text-[10px] sm:text-xs text-gray-500 mt-0.5">On-Time</p>
                       </div>
                       <div>
-                        <div className="flex items-center justify-center gap-1 text-blue-600">
-                          <MessageCircle className="w-4 h-4" />
-                          <span className="font-bold">{vendor.response_rate ?? "—"}</span>
+                        <div className="flex items-center justify-center gap-0.5 sm:gap-1 text-blue-600">
+                          <MessageCircle className="w-3 h-3 sm:w-3.5 sm:h-3.5 lg:w-4 lg:h-4 shrink-0" />
+                          <span className="font-bold text-xs sm:text-sm truncate max-w-full">{vendor.response_rate ?? "—"}</span>
                         </div>
-                        <p className="text-xs text-gray-500 mt-0.5">Response</p>
+                        <p className="text-[10px] sm:text-xs text-gray-500 mt-0.5">Response</p>
                       </div>
                     </div>
                   </div>
@@ -250,36 +301,30 @@ export default function VendorsContent() {
             {filtered.map((vendor) => (
               <Link key={vendor.id} href={`/seller/${vendor.slug}`}>
                 <motion.div
-                  whileHover={{ x: 5 }}
-                  className="bg-white rounded-xl p-6 shadow-sm hover:shadow-lg border border-gray-100 flex gap-6"
+                  whileHover={{ x: 4 }}
+                  className="bg-white rounded-xl p-4 sm:p-5 lg:p-6 shadow-sm hover:shadow-lg border border-gray-100 flex flex-col sm:flex-row gap-4 sm:gap-6"
                 >
                   <SellerAvatar
                     src={vendor.logo}
                     alt={vendor.storeName || vendor.name}
-                    className="w-20 h-20 shrink-0"
-                    iconClassName="w-10 h-10"
+                    className="w-16 h-16 sm:w-20 sm:h-20 shrink-0 mx-auto sm:mx-0"
+                    iconClassName="w-8 h-8 sm:w-10 sm:h-10"
                   />
-                  <div className="flex-1 min-w-0">
+                  <div className="flex-1 min-w-0 text-center sm:text-left">
                     <p className="text-xs text-gray-500 mb-0.5">
                       {vendor.reviews || 0} {(vendor.reviews || 0) === 1 ? "review" : "reviews"}
                     </p>
-                    <div className="flex items-center gap-2 mb-1 flex-wrap">
-                      <h3 className="font-bold text-xl">{vendor.storeName || vendor.name}</h3>
+                    <div className="flex items-center justify-center sm:justify-start gap-2 mb-1 flex-wrap">
+                      <h3 className="font-bold text-lg sm:text-xl line-clamp-1">{vendor.storeName || vendor.name}</h3>
                       {vendor.kyc_verified && (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-blue-100 rounded-full">
-                          <BadgeCheck className="w-4 h-4 text-blue-500" />
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-blue-100 rounded-full shrink-0">
+                          <BadgeCheck className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-blue-500" />
                           <span className="text-xs font-medium text-blue-600">Verified</span>
                         </span>
                       )}
-                      {vendor.kyc_verified && (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-emerald-100 rounded-full">
-                          <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-                          <span className="text-xs font-medium text-emerald-600">KYC</span>
-                        </span>
-                      )}
                     </div>
-                    <p className="text-gray-600 mb-3 line-clamp-1">{vendor.description}</p>
-                    <div className="flex flex-wrap gap-4 text-sm">
+                    <p className="text-sm text-gray-600 mb-3 line-clamp-2 sm:line-clamp-1">{vendor.description}</p>
+                    <div className="flex flex-wrap items-center justify-center sm:justify-start gap-x-4 gap-y-2 text-xs sm:text-sm">
                       <RatingStars rating={vendor.rating} size="sm" showValue valueClassName="text-sm font-semibold text-gray-700" />
                       {vendor.city && (
                         <span className="flex items-center gap-1 text-gray-600">

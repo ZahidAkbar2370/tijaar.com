@@ -110,8 +110,7 @@ function StarRating({ rating, selected, onClick }) {
           />
         ))}
       </div>
-      <span className="text-sm font-medium text-gray-700">& Up</span>
-      {selected && <Check className="w-4 h-4 text-amber-500 ml-auto" />}
+      {selected && <Check className="w-4 h-4 text-amber-500 ml-auto shrink-0" />}
     </button>
   );
 }
@@ -247,7 +246,7 @@ export default function CategoryContent({ category, products: initialProducts, s
     if (priceRange.max) params.max_price = priceRange.max;
     if (selectedCondition) params.condition = selectedCondition;
     if (selectedStock) params.availability = selectedStock;
-    if (selectedRating) params.min_rating = selectedRating;
+    if (selectedRating) params.rating = selectedRating;
     return params;
   }, [category.slug, debouncedSearch, priceRange, selectedSubcategory, selectedCondition, selectedStock, selectedRating, sortBy]);
 
@@ -345,7 +344,11 @@ export default function CategoryContent({ category, products: initialProducts, s
       filters.push({ key: "stock", label: stock?.label || selectedStock, onRemove: () => setSelectedStock("") });
     }
     if (selectedRating) {
-      filters.push({ key: "rating", label: `${selectedRating}+ Stars`, onRemove: () => setSelectedRating(null) });
+      filters.push({
+        key: "rating",
+        label: selectedRating === 1 ? "1 Star" : `${selectedRating} Stars`,
+        onRemove: () => setSelectedRating(null),
+      });
     }
     return filters;
   }, [selectedSubcategory, priceRange, selectedCondition, selectedStock, selectedRating, subs]);

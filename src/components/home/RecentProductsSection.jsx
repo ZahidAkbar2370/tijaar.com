@@ -28,7 +28,6 @@ export default function RecentProductsSection() {
           <h2 className="text-base sm:text-2xl md:text-3xl font-bold text-gray-800">
             <span className="truncate">Recently Added</span>
           </h2>
-          <p className="text-gray-500 mt-0.5 sm:mt-1 text-xs sm:text-base hidden sm:block">Newest products — auto-scrolling</p>
         </div>
         <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
           <button

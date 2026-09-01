@@ -12,102 +12,52 @@ import {
   Send,
   MessageCircle,
   Headphones,
+  CheckCircle2,
   Facebook,
   Twitter,
   Instagram,
   Youtube,
   Music2,
+  ArrowRight,
 } from "lucide-react";
 import { cmsApi } from "@/lib/api";
 import { useSnackbar } from "@/context/SnackbarContext";
 import { useSeoH1 } from "@/hooks/useSeoH1";
 import { isValidEmail } from "@/lib/validators";
+import { useSiteSettings } from "@/context/SiteSettingsContext";
+import { mergeContactPageData, isConfiguredUrl } from "@/lib/siteContact";
 
 const STATIC = {
   hero: {
     title: "Get in Touch",
     subtitle:
-      "Have a question or need help? We're here for you 24/7. Reach out and we'll get back to you as soon as possible.",
+      "Have a question or need help? We're here for you. Reach out and we'll get back to you as soon as possible.",
   },
-  contact_cards: [
-    { type: "phone", label: "Phone", value: "+971 50 123 4567", subtext: "Call us anytime" },
-    { type: "email", label: "Email", value: "support@tijaar.com", subtext: "Send us an email" },
-    { type: "address", label: "Address", value: "Dubai, United Arab Emirates", subtext: "Visit our office" },
-  ],
-  map: {
-    heading: "Our Location",
-    address: "Dubai, United Arab Emirates",
-    embed_url: "",
-  },
-  form_title: "Send us a Message",
-  support: {
-    title: "Need Immediate Help?",
-    description:
-      "Our support team is here to assist you with any questions or concerns. Reach out via phone or email and we'll respond as soon as possible.",
-    phone_label: "Call Us",
-    phone_value: "+971 50 123 4567",
-    email_label: "Email Us",
-    email_value: "support@tijaar.com",
-  },
-  social: {
-    title: "Follow Us",
-    subtext: "Stay connected with us on social media",
-    links: [
-      { platform: "facebook", url: "" },
-      { platform: "twitter", url: "" },
-      { platform: "instagram", url: "" },
-      { platform: "youtube", url: "" },
-      { platform: "tiktok", url: "" },
-    ],
-  },
-};
-
-const CARD_ICONS = {
-  phone: { Icon: Phone, bg: "bg-emerald-500" },
-  email: { Icon: Mail, bg: "bg-[#1790d7]" },
-  address: { Icon: MapPin, bg: "bg-violet-500" },
 };
 
 const SOCIAL_ICONS = {
-  facebook: Facebook,
-  twitter: Twitter,
-  instagram: Instagram,
-  youtube: Youtube,
-  tiktok: Music2,
+  facebook: { Icon: Facebook, hover: "hover:bg-[#1877F2] hover:border-[#1877F2]" },
+  twitter: { Icon: Twitter, hover: "hover:bg-black hover:border-black" },
+  instagram: { Icon: Instagram, hover: "hover:bg-gradient-to-br hover:from-purple-600 hover:to-pink-500 hover:border-pink-500" },
+  youtube: { Icon: Youtube, hover: "hover:bg-red-600 hover:border-red-600" },
+  tiktok: { Icon: Music2, hover: "hover:bg-gray-900 hover:border-gray-900" },
 };
 
-function buildDataFromCms(page) {
+const inputClass =
+  "w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50/50 focus:bg-white focus:ring-2 focus:ring-[#1790d7]/20 focus:border-[#1790d7] text-sm transition-colors";
+
+function buildDataFromCms(page, settings) {
   const s = page?.sections || {};
   const hero = {
     title: page?.banner_title || page?.title || STATIC.hero.title,
     subtitle: page?.banner_subtitle || STATIC.hero.subtitle,
   };
-  const contact_cards = Array.isArray(s.contact_cards) && s.contact_cards.length > 0
-    ? s.contact_cards
-    : STATIC.contact_cards;
-  const map = {
-    heading: s.map?.heading ?? STATIC.map.heading,
-    address: s.map?.address ?? STATIC.map.address,
-    embed_url: s.map?.embed_url ?? STATIC.map.embed_url,
-  };
-  const form_title = s.form_title ?? STATIC.form_title;
-  const support = {
-    title: s.support?.title ?? STATIC.support.title,
-    description: s.support?.description ?? STATIC.support.description,
-    phone_label: s.support?.phone_label ?? STATIC.support.phone_label,
-    phone_value: s.support?.phone_value ?? STATIC.support.phone_value,
-    email_label: s.support?.email_label ?? STATIC.support.email_label,
-    email_value: s.support?.email_value ?? STATIC.support.email_value,
-  };
-  const social = {
-    title: s.social?.title ?? STATIC.social.title,
-    subtext: s.social?.subtext ?? STATIC.social.subtext,
-    links: Array.isArray(s.social?.links) && s.social.links.length > 0 ? s.social.links : STATIC.social.links,
-  };
-  return { hero, contact_cards, map, form_title, support, social };
+  const merged = mergeContactPageData(s, settings);
+  return { hero, ...merged };
 }
 
 export default function ContactContent() {
+  const settings = useSiteSettings();
   const [cmsPage, setCmsPage] = useState(null);
   const [loading, setLoading] = useState(true);
   const [form, setForm] = useState({ name: "", email: "", subject: "", message: "" });
@@ -116,35 +66,29 @@ export default function ContactContent() {
   const { showSuccess, showError } = useSnackbar();
 
   const data = useMemo(() => {
-    if (cmsPage?.page?.sections) return buildDataFromCms(cmsPage.page);
-    if (cmsPage?.page) {
-      const d = buildDataFromCms(null);
-      d.hero = {
-        title: cmsPage.page.banner_title || cmsPage.page.title || STATIC.hero.title,
-        subtitle: cmsPage.page.banner_subtitle || STATIC.hero.subtitle,
-      };
-      return d;
-    }
-    return {
-      hero: STATIC.hero,
-      contact_cards: STATIC.contact_cards,
-      map: STATIC.map,
-      form_title: STATIC.form_title,
-      support: STATIC.support,
-      social: STATIC.social,
-    };
-  }, [cmsPage]);
+    if (cmsPage?.page) return buildDataFromCms(cmsPage.page, settings);
+    return buildDataFromCms(null, settings);
+  }, [cmsPage, settings]);
 
   const h1 = useSeoH1("cms", { title: data.hero.title, fallback: data.hero.title });
+  const configuredSocial = data.social.links.filter((l) => isConfiguredUrl(l.url));
 
   useEffect(() => {
     let cancelled = false;
     cmsApi
       .page("contact")
-      .then((res) => { if (!cancelled) setCmsPage(res); })
-      .catch(() => { if (!cancelled) setCmsPage(null); })
-      .finally(() => { if (!cancelled) setLoading(false); });
-    return () => { cancelled = true; };
+      .then((res) => {
+        if (!cancelled) setCmsPage(res);
+      })
+      .catch(() => {
+        if (!cancelled) setCmsPage(null);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const handleSubmit = async (e) => {
@@ -191,254 +135,235 @@ export default function ContactContent() {
         </div>
       </div>
 
-      {/* Hero */}
-      <section className="bg-gradient-to-b from-[#1790d7] to-[#4db3e8] py-16 lg:py-20">
-        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <motion.h1
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="text-4xl lg:text-5xl xl:text-6xl font-bold text-white tracking-tight"
-          >
-            {h1}
-          </motion.h1>
-          <motion.p
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.08 }}
-            className="mt-4 text-white/95 text-lg lg:text-xl max-w-2xl mx-auto leading-relaxed"
-          >
-            {data.hero.subtitle}
-          </motion.p>
-        </div>
-      </section>
+      <h1 className="sr-only">{h1}</h1>
 
-      <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-16 space-y-12 lg:space-y-16">
-        {/* Contact info cards */}
-        <motion.section
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="grid grid-cols-1 md:grid-cols-3 gap-6"
-        >
-          {data.contact_cards.map((card, i) => {
-            const { Icon, bg } = CARD_ICONS[card.type] || CARD_ICONS.email;
-            const href = card.type === "phone" ? `tel:${card.value}` : card.type === "email" ? `mailto:${card.value}` : null;
-            return (
-              <div
-                key={i}
-                className="bg-white rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.06)] border border-gray-100/80 p-6 lg:p-8 text-center"
-              >
-                <div className={`inline-flex w-12 h-12 rounded-xl ${bg} items-center justify-center mb-4`}>
-                  <Icon className="w-6 h-6 text-white" />
+      <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 lg:py-14 pb-16 lg:pb-24">
+        {/* Form + Support sidebar */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 mb-14 lg:mb-16">
+          {/* Form */}
+          <motion.section
+            id="message"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="lg:col-span-7 xl:col-span-8 scroll-mt-24"
+          >
+            <div className="bg-white rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.06)] border border-gray-100 overflow-hidden">
+              <div className="px-6 lg:px-8 py-6 border-b border-gray-100 bg-gradient-to-r from-gray-50/80 to-white">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#1790d7] to-[#4db3e8] flex items-center justify-center shadow-md">
+                    <MessageCircle className="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <span className="text-xs font-semibold uppercase tracking-wider text-[#1790d7]">
+                      Write to us
+                    </span>
+                    <h2 className="text-xl lg:text-2xl font-bold text-gray-900">{data.form_title}</h2>
+                  </div>
                 </div>
-                <h3 className="font-bold text-gray-900 mb-2">{card.label}</h3>
-                {href ? (
-                  <a href={href} className="text-lg font-semibold text-[#1790d7] hover:underline block">
-                    {card.value}
-                  </a>
+              </div>
+
+              <div className="p-6 lg:p-8">
+                {submitted ? (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.96 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="py-12 text-center"
+                  >
+                    <div className="w-16 h-16 rounded-full bg-emerald-100 flex items-center justify-center mx-auto mb-4">
+                      <CheckCircle2 className="w-8 h-8 text-emerald-600" />
+                    </div>
+                    <h3 className="text-xl font-bold text-gray-900 mb-2">Message Sent!</h3>
+                    <p className="text-gray-600">We&apos;ll get back to you as soon as possible.</p>
+                  </motion.div>
                 ) : (
-                  <p className="text-lg font-semibold text-[#1790d7]">{card.value}</p>
-                )}
-                {card.subtext && (
-                  <p className="text-sm text-gray-500 mt-1">{card.subtext}</p>
+                  <form onSubmit={handleSubmit} className="space-y-5">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Name <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          value={form.name}
+                          onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))}
+                          placeholder="Your name"
+                          className={inputClass}
+                          required
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Email <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          type="email"
+                          value={form.email}
+                          onChange={(e) => setForm((p) => ({ ...p, email: e.target.value }))}
+                          placeholder="your.email@example.com"
+                          className={inputClass}
+                          required
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Subject</label>
+                      <input
+                        type="text"
+                        value={form.subject}
+                        onChange={(e) => setForm((p) => ({ ...p, subject: e.target.value }))}
+                        placeholder="What's this about?"
+                        className={inputClass}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Message <span className="text-red-500">*</span>
+                      </label>
+                      <textarea
+                        rows={5}
+                        value={form.message}
+                        onChange={(e) => setForm((p) => ({ ...p, message: e.target.value }))}
+                        placeholder="Tell us more about your question or issue..."
+                        className={`${inputClass} resize-none`}
+                        required
+                      />
+                    </div>
+                    <button
+                      type="submit"
+                      disabled={sending}
+                      className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-3.5 bg-gradient-to-r from-[#1790d7] to-[#4db3e8] text-white font-semibold rounded-xl hover:shadow-lg hover:opacity-95 transition-all disabled:opacity-60"
+                    >
+                      <Send className="w-5 h-5" />
+                      {sending ? "Sending..." : "Send Message"}
+                    </button>
+                  </form>
                 )}
               </div>
-            );
-          })}
-        </motion.section>
+            </div>
+          </motion.section>
 
-        {/* Map */}
+          {/* Support */}
+          <aside className="lg:col-span-5 xl:col-span-4 lg:sticky lg:top-24 lg:self-start">
+            <motion.div
+              id="support"
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="scroll-mt-24 bg-white rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.06)] border border-gray-100 overflow-hidden"
+            >
+              <div className="px-6 py-5 border-b border-gray-100 bg-gradient-to-r from-amber-50/80 to-white">
+                <div className="flex items-center gap-3">
+                  <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center shadow-md">
+                    <Headphones className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <span className="text-xs font-semibold uppercase tracking-wider text-amber-700">
+                      Quick support
+                    </span>
+                    <h3 className="font-bold text-gray-900">{data.support.title}</h3>
+                  </div>
+                </div>
+              </div>
+              <div className="p-6">
+                {data.support.description && (
+                  <p className="text-gray-600 text-sm leading-relaxed mb-5">{data.support.description}</p>
+                )}
+                <div className="space-y-3">
+                  {data.support.phone_value && (
+                    <a
+                      href={`tel:${data.support.phone_value}`}
+                      className="group flex items-center gap-4 p-4 rounded-xl border border-gray-100 bg-gray-50/80 hover:bg-white hover:border-[#1790d7]/30 hover:shadow-sm transition-all"
+                    >
+                      <div className="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center shrink-0 group-hover:bg-emerald-500 transition-colors">
+                        <Phone className="w-5 h-5 text-emerald-600 group-hover:text-white transition-colors" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-xs font-medium text-gray-500">{data.support.phone_label}</p>
+                        <p className="font-semibold text-gray-900 truncate">{data.support.phone_value}</p>
+                      </div>
+                      <ArrowRight className="w-4 h-4 text-gray-300 group-hover:text-[#1790d7] shrink-0 transition-colors" />
+                    </a>
+                  )}
+                  {data.support.email_value && (
+                    <a
+                      href={`mailto:${data.support.email_value}`}
+                      className="group flex items-center gap-4 p-4 rounded-xl border border-gray-100 bg-gray-50/80 hover:bg-white hover:border-[#1790d7]/30 hover:shadow-sm transition-all"
+                    >
+                      <div className="w-10 h-10 rounded-xl bg-sky-100 flex items-center justify-center shrink-0 group-hover:bg-[#1790d7] transition-colors">
+                        <Mail className="w-5 h-5 text-[#1790d7] group-hover:text-white transition-colors" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-xs font-medium text-gray-500">{data.support.email_label}</p>
+                        <p className="font-semibold text-gray-900 truncate">{data.support.email_value}</p>
+                      </div>
+                      <ArrowRight className="w-4 h-4 text-gray-300 group-hover:text-[#1790d7] shrink-0 transition-colors" />
+                    </a>
+                  )}
+                  {data.support.address_value && (
+                    <div className="flex items-start gap-4 p-4 rounded-xl border border-gray-100 bg-gray-50/80">
+                      <div className="w-10 h-10 rounded-xl bg-violet-100 flex items-center justify-center shrink-0">
+                        <MapPin className="w-5 h-5 text-violet-600" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-xs font-medium text-gray-500">
+                          {data.support.address_label || "Address"}
+                        </p>
+                        <p className="font-semibold text-gray-900 leading-snug">{data.support.address_value}</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </motion.div>
+          </aside>
+        </div>
+
+        {/* Follow Tijaar — full width row */}
         <motion.section
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="bg-white rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.06)] border border-gray-100/80 overflow-hidden"
+          className="col-span-12 mb-14 lg:mb-16"
         >
-          <div className="flex items-center gap-3 px-6 py-4 border-b border-gray-100">
-            <div className="w-10 h-10 rounded-xl bg-[#1790d7]/10 flex items-center justify-center">
-              <MapPin className="w-5 h-5 text-[#1790d7]" />
-            </div>
-            <div>
-              <h2 className="font-bold text-gray-900">{data.map.heading}</h2>
-              {data.map.address && (
-                <p className="text-sm text-gray-500">{data.map.address}</p>
-              )}
-            </div>
-          </div>
-          <div className="aspect-[21/9] min-h-[240px] bg-gray-200">
-            {data.map.embed_url ? (
-              <iframe
-                src={data.map.embed_url}
-                title="Map"
-                className="w-full h-full border-0"
-                allowFullScreen
-                loading="lazy"
-                referrerPolicy="no-referrer-when-downgrade"
-              />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center text-gray-400">
-                <span className="text-sm">Map placeholder — add embed URL in CMS</span>
+          <div className="bg-white rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.06)] border border-gray-100 p-6 lg:p-8">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-center">
+              <div className="lg:col-span-8">
+                <span className="inline-block px-3 py-1 rounded-full bg-violet-50 border border-violet-100 text-violet-800 text-xs font-semibold mb-3">
+                  Social
+                </span>
+                <h3 className="font-bold text-gray-900 text-lg lg:text-xl mb-2">{data.social.title}</h3>
+                {data.social.subtext && (
+                  <p className="text-sm text-gray-500 leading-relaxed max-w-2xl">{data.social.subtext}</p>
+                )}
               </div>
-            )}
+              <div className="lg:col-span-4 lg:flex lg:justify-end">
+                {configuredSocial.length > 0 ? (
+                  <div className="flex flex-wrap gap-3">
+                    {configuredSocial.map((link, i) => {
+                      const social = SOCIAL_ICONS[link.platform] || { Icon: Mail, hover: "hover:bg-[#1790d7] hover:border-[#1790d7]" };
+                      const SocialIcon = social.Icon;
+                      return (
+                        <a
+                          key={i}
+                          href={link.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className={`w-11 h-11 rounded-xl border-2 border-gray-200 flex items-center justify-center text-gray-600 hover:text-white transition-all ${social.hover}`}
+                          aria-label={link.platform}
+                        >
+                          <SocialIcon className="w-5 h-5" />
+                        </a>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <p className="text-sm text-gray-400">Social links appear when configured in Admin settings.</p>
+                )}
+              </div>
+            </div>
           </div>
         </motion.section>
-
-        {/* Two columns: Form | Support + Social */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-10">
-          {/* Left: Form */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="lg:col-span-2"
-          >
-            <div className="bg-white rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.06)] border border-gray-100/80 p-6 lg:p-8">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="w-10 h-10 rounded-xl bg-[#1790d7]/10 flex items-center justify-center">
-                  <MessageCircle className="w-5 h-5 text-[#1790d7]" />
-                </div>
-                <h2 className="text-2xl font-bold text-gray-900">{data.form_title}</h2>
-              </div>
-              {submitted ? (
-                <div className="py-12 text-center">
-                  <p className="text-emerald-600 font-semibold text-lg">Message sent successfully! We&apos;ll get back to you soon.</p>
-                </div>
-              ) : (
-                <form onSubmit={handleSubmit} className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Name <span className="text-red-500">*</span></label>
-                    <input
-                      type="text"
-                      value={form.name}
-                      onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))}
-                      placeholder="Your name"
-                      className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#1790d7]/20 focus:border-[#1790d7] text-sm"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Email <span className="text-red-500">*</span></label>
-                    <input
-                      type="email"
-                      value={form.email}
-                      onChange={(e) => setForm((p) => ({ ...p, email: e.target.value }))}
-                      placeholder="your.email@example.com"
-                      className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#1790d7]/20 focus:border-[#1790d7] text-sm"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Subject</label>
-                    <input
-                      type="text"
-                      value={form.subject}
-                      onChange={(e) => setForm((p) => ({ ...p, subject: e.target.value }))}
-                      placeholder="What's this about?"
-                      className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#1790d7]/20 focus:border-[#1790d7] text-sm"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Message <span className="text-red-500">*</span></label>
-                    <textarea
-                      rows={5}
-                      value={form.message}
-                      onChange={(e) => setForm((p) => ({ ...p, message: e.target.value }))}
-                      placeholder="Tell us more..."
-                      className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#1790d7]/20 focus:border-[#1790d7] text-sm resize-none"
-                      required
-                    />
-                  </div>
-                  <button
-                    type="submit"
-                    disabled={sending}
-                    className="w-full py-3.5 bg-gradient-to-r from-[#1790d7] to-[#4db3e8] text-white font-semibold rounded-xl flex items-center justify-center gap-2 hover:opacity-95 transition-opacity disabled:opacity-60 shadow-md"
-                  >
-                    <Send className="w-5 h-5" />
-                    {sending ? "Sending..." : "Send Message"}
-                  </button>
-                </form>
-              )}
-            </div>
-          </motion.div>
-
-          {/* Right: Support + Social */}
-          <div className="space-y-6">
-            {/* Need Immediate Help? */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              className="bg-white rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.06)] border border-gray-100/80 p-6"
-            >
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 rounded-xl bg-[#1790d7]/10 flex items-center justify-center">
-                  <Headphones className="w-5 h-5 text-[#1790d7]" />
-                </div>
-                <h3 className="font-bold text-gray-900">{data.support.title}</h3>
-              </div>
-              {data.support.description && (
-                <p className="text-gray-600 text-sm leading-relaxed mb-4">{data.support.description}</p>
-              )}
-              <div className="space-y-3">
-                {data.support.phone_value && (
-                  <a
-                    href={`tel:${data.support.phone_value}`}
-                    className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 border border-gray-100 hover:bg-gray-100 transition-colors"
-                  >
-                    <Phone className="w-5 h-5 text-[#1790d7] shrink-0" />
-                    <div className="min-w-0">
-                      <p className="text-xs font-medium text-gray-500">{data.support.phone_label}</p>
-                      <p className="font-semibold text-[#1790d7] truncate">{data.support.phone_value}</p>
-                    </div>
-                  </a>
-                )}
-                {data.support.email_value && (
-                  <a
-                    href={`mailto:${data.support.email_value}`}
-                    className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 border border-gray-100 hover:bg-gray-100 transition-colors"
-                  >
-                    <Mail className="w-5 h-5 text-[#1790d7] shrink-0" />
-                    <div className="min-w-0">
-                      <p className="text-xs font-medium text-gray-500">{data.support.email_label}</p>
-                      <p className="font-semibold text-[#1790d7] truncate">{data.support.email_value}</p>
-                    </div>
-                  </a>
-                )}
-              </div>
-            </motion.div>
-
-            {/* Follow Us */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              className="bg-white rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.06)] border border-gray-100/80 p-6"
-            >
-              <h3 className="font-bold text-gray-900 mb-1">{data.social.title}</h3>
-              {data.social.subtext && (
-                <p className="text-sm text-gray-500 mb-4">{data.social.subtext}</p>
-              )}
-              <div className="flex flex-wrap gap-3">
-                {data.social.links
-                  .filter((l) => l.url)
-                  .map((link, i) => {
-                    const SocialIcon = SOCIAL_ICONS[link.platform] || Mail;
-                    return (
-                      <a
-                        key={i}
-                        href={link.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="w-10 h-10 rounded-full border-2 border-gray-200 flex items-center justify-center text-gray-600 hover:border-[#1790d7] hover:text-[#1790d7] hover:bg-[#1790d7]/5 transition-colors"
-                        aria-label={link.platform}
-                      >
-                        <SocialIcon className="w-5 h-5" />
-                      </a>
-                    );
-                  })}
-              </div>
-            </motion.div>
-          </div>
-        </div>
       </div>
     </div>
   );

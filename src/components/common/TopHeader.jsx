@@ -8,16 +8,18 @@ import {
   Twitter,
   Instagram,
   Music2,
+  Youtube,
 } from "lucide-react";
 import { useSiteSettings } from "@/context/SiteSettingsContext";
+import { getSocialLinksMap } from "@/lib/siteContact";
 
 const defaultStats = ["Cash on Delivery Available", "Trusted Sellers"];
-const defaultSocial = { facebook: "#", twitter: "#", instagram: "#", music: "#" };
 
 const socialPlatforms = [
   { key: "facebook", icon: Facebook, label: "Tijaar on Facebook" },
   { key: "twitter", icon: Twitter, label: "Tijaar on X (Twitter)" },
   { key: "instagram", icon: Instagram, label: "Tijaar on Instagram" },
+  { key: "youtube", icon: Youtube, label: "Tijaar on YouTube" },
   { key: "music", icon: Music2, label: "Tijaar on TikTok" },
 ];
 
@@ -26,10 +28,9 @@ export default function TopHeader() {
   const stats = Array.isArray(settings.topbar_stats) && settings.topbar_stats.length > 0
     ? settings.topbar_stats
     : defaultStats;
-  const contactPhone = settings.topbar_phone ?? "";
-  const socialLinks = settings.topbar_social_links && typeof settings.topbar_social_links === "object"
-    ? { ...defaultSocial, ...settings.topbar_social_links }
-    : defaultSocial;
+  const contactPhone = settings.topbar_phone?.trim() || "";
+  const socialLinks = getSocialLinksMap(settings);
+  const visibleSocialPlatforms = socialPlatforms.filter(({ key }) => socialLinks[key]);
 
   return (
     <div className="bg-gradient-to-r from-[#1790d7] to-[#4db3e8] w-full text-sm relative z-[60]">
@@ -64,7 +65,7 @@ export default function TopHeader() {
           <div className="hidden md:flex items-center gap-3">
             <span className="w-px h-4 bg-white/30" />
             <div className="flex gap-2">
-              {socialPlatforms.map(({ key, icon: Icon, label }) => (
+              {visibleSocialPlatforms.map(({ key, icon: Icon, label }) => (
                 <a
                   key={key}
                   href={socialLinks[key]}
@@ -95,7 +96,7 @@ export default function TopHeader() {
             </>
           )}
           <div className="flex gap-2">
-            {socialPlatforms.map(({ key, icon: Icon, label }) => (
+            {visibleSocialPlatforms.map(({ key, icon: Icon, label }) => (
               <a
                 key={key}
                 href={socialLinks[key]}

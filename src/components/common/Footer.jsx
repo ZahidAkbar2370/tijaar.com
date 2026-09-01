@@ -32,15 +32,17 @@ import {
   RotateCcw,
   Package,
   Tag,
+  Music2,
 } from "lucide-react";
 import { useSiteSettings } from "@/context/SiteSettingsContext";
 import SiteLogo from "@/components/common/SiteLogo";
+import { getFooterAbout, getFooterContactFields, getSocialLinksMap } from "@/lib/siteContact";
 
 // Footer data: about/tagline and contact come from useSiteSettings(); socialLinks from topbar_social_links
 
 const quickLinks = [
   { name: "How It Works", link: "/how-it-works", icon: HelpCircle, color: "text-purple-400" },
-  { name: "Become a Seller", link: "/sellers", icon: Store, color: "text-emerald-400" },
+  { name: "Become a Seller", link: "/seller/register", icon: Store, color: "text-emerald-400" },
   { name: "FAQs", link: "/faqs", icon: MessageCircle, color: "text-amber-400" },
   { name: "Shop", link: "/shop", icon: ShoppingCart, color: "text-blue-400" },
   { name: "Flash Deals", link: "/flash-deals", icon: Tag, color: "text-rose-400" },
@@ -69,25 +71,18 @@ const support = [
 
 export default function Footer() {
   const settings = useSiteSettings();
-  const data = {
-    about: settings.footer_tagline || settings.site_tagline || "Tijaar is the #1 multi-seller marketplace connecting buyers and sellers. Shop with confidence from verified sellers Pakistan.",
-    contact: {
-      address: settings.contact_address || "Pakistan",
-      phone: settings.contact_phone || "+92 300 1234567",
-      email: settings.contact_email || "support@tijaar.com",
-      support_hours: "24/7",
-    },
-    socialLinks: settings.topbar_social_links || { facebook: "#", twitter: "#", instagram: "#", youtube: "#" },
-  };
-  const contact = data.contact || {};
+  const contact = getFooterContactFields(settings);
+  const about = getFooterAbout(settings);
+  const socialLinksRaw = getSocialLinksMap(settings);
   const socialMap = {
     facebook: { icon: Facebook, color: "hover:bg-blue-600", label: "Tijaar on Facebook" },
     twitter: { icon: Twitter, color: "hover:bg-sky-500", label: "Tijaar on X (Twitter)" },
     instagram: { icon: Instagram, color: "hover:bg-pink-600", label: "Tijaar on Instagram" },
     youtube: { icon: Youtube, color: "hover:bg-red-600", label: "Tijaar on YouTube" },
+    music: { icon: Music2, color: "hover:bg-gray-600", label: "Tijaar on TikTok" },
   };
-  const socialLinks = Object.entries(data.socialLinks || {})
-    .filter(([key, url]) => url && socialMap[key])
+  const socialLinks = Object.entries(socialLinksRaw)
+    .filter(([key]) => socialMap[key])
     .map(([key, link]) => ({ ...socialMap[key], link, key }));
 
   return (
@@ -98,8 +93,8 @@ export default function Footer() {
           {/* About & Contact */}
           <div className="col-span-2 lg:col-span-2">
             <SiteLogo variant="footer" className="mb-3 sm:mb-5" />
-            {data.about && (
-              <p className="text-gray-400 text-xs sm:text-sm leading-relaxed max-w-sm mb-4 sm:mb-6">{data.about}</p>
+            {about && (
+              <p className="text-gray-400 text-xs sm:text-sm leading-relaxed max-w-sm mb-4 sm:mb-6">{about}</p>
             )}
             <div className="flex flex-col gap-2 sm:gap-3 mb-4 sm:mb-6">
               {contact.phone && (
@@ -124,9 +119,17 @@ export default function Footer() {
                   <span className="text-xs sm:text-sm break-all">{contact.email}</span>
                 </a>
               )}
+              {contact.address && (
+                <div className="flex items-start gap-2 sm:gap-3 text-gray-400">
+                  <div className="p-1.5 sm:p-2 bg-white/5 rounded-lg shrink-0">
+                    <MapPin className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-400" />
+                  </div>
+                  <span className="text-xs sm:text-sm leading-relaxed">{contact.address}</span>
+                </div>
+              )}
             </div>
-            {socialLinks.length > 0 ? (
-              <div className="flex gap-1.5 sm:gap-2 min-h-[36px] sm:min-h-[44px]">
+            {socialLinks.length > 0 && (
+              <div className="flex gap-1.5 sm:gap-2">
                 {socialLinks.map((s) => {
                   const Icon = s.icon;
                   return (
@@ -143,8 +146,6 @@ export default function Footer() {
                   );
                 })}
               </div>
-            ) : (
-              <div className="flex gap-2 min-h-[36px] sm:min-h-[44px]" aria-hidden />
             )}
           </div>
 
@@ -288,7 +289,15 @@ export default function Footer() {
         <div className="py-4 sm:py-5 border-t border-white/10">
           <div className="flex flex-col md:flex-row items-center justify-between gap-3 sm:gap-4">
             <p className="text-gray-400 text-xs sm:text-sm text-center md:text-left">
-              © {new Date().getFullYear()} Tijaar. All rights reserved. Powered by Softwebies
+              © {new Date().getFullYear()} Tijaar. All rights reserved. Design &amp; Developed by{" "}
+              <a
+                href="https://softwebies.com/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-gray-300 hover:text-white underline underline-offset-2 transition-colors"
+              >
+                Softwebies
+              </a>
             </p>
             <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-4 md:gap-6">
               <Link href="/terms" className="text-gray-400 hover:text-white text-xs sm:text-sm transition-colors">

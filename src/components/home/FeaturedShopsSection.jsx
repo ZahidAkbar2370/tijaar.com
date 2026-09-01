@@ -19,9 +19,6 @@ export default function FeaturedShopsSection() {
           <h2 className="text-base sm:text-2xl md:text-3xl font-bold text-gray-800">
             <span className="truncate">Featured Verified Sellers</span>
           </h2>
-          <p className="text-gray-500 mt-0.5 sm:mt-2 text-xs sm:text-base hidden sm:block">
-            Verified sellers with an active shop promotion package
-          </p>
         </div>
         <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
           <button type="button" className="featured-shops-prev w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center rounded-full bg-white border border-gray-200 hover:bg-[#1790d7] hover:text-white hover:border-[#1790d7] transition-colors shadow-sm" aria-label="Previous">

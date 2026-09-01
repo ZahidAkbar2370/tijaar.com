@@ -4,7 +4,7 @@ export async function generateMetadata() {
   return generateCmsPageMetadata(
     "how-it-works",
     "How It Works",
-    "Learn how to buy and sell on Tijaar."
+    "Learn how to shop as a buyer, sell as a customer, or grow with a business or private seller account on Tijaar."
   );
 }
 

@@ -47,12 +47,10 @@ export default function HomePageClient({ initialHomeData = null, heroBackground 
         <PromotionProductsSection
           dataKey="featured_products"
           title="Featured Products"
-          subtitle="Paid featured listings with an active promotion package"
         />
         <PromotionProductsSection
           dataKey="hot_sale_products"
           title="Hot Sale / Flash Deals"
-          subtitle="Paid hot packages with an active promotion — shown in random order"
         />
         {BrandsSlider ? <BrandsSlider /> : null}
         <CategoryProductsSection />
