@@ -21,7 +21,6 @@ if (!existsSync(standaloneServer)) {
 }
 
 process.env.NODE_ENV = process.env.NODE_ENV || "production";
-// process.env.HOSTNAME = process.env.HOSTNAME || "0.0.0.0";
 process.env.HOSTNAME = "127.0.0.1";
 if (!process.env.PORT) {
   process.env.PORT = "3000";
